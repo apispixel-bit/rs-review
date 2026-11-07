@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Analisis Sentimen RS</title>
+    <title>PIESCEScare</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -74,6 +74,22 @@
         [data-bs-theme="dark"] #sidebar ul li a.active { color: #ffffff; background: #2b2b40; }
 
         #sidebar ul li a i { margin-right: 12px; width: 20px; text-align: center; }
+
+        /* Styling Submenu Dropdown Sidebar */
+        .sidebar-submenu {
+            padding-left: 15px;
+            list-style: none;
+        }
+        .sidebar-submenu li a {
+            font-size: 0.85rem !important;
+            padding: 8px 12px !important;
+        }
+        .sidebar-arrow {
+            transition: transform 0.3s ease;
+        }
+        a[aria-expanded="true"] .sidebar-arrow {
+            transform: rotate(180deg);
+        }
 
         /* Content Area & Top Navbar Sticky */
         #content {
@@ -168,7 +184,7 @@
     <nav id="sidebar">
         <div class="sidebar-header d-flex align-items-center">
             <i class="fa-solid fa-hospital-user text-primary fa-xl me-2"></i>
-            <h5 class="fw-bold mb-0 text-primary">SentimenRS</h5>
+            <h5 class="fw-bold mb-0 text-primary">PIESCEScare</h5>
         </div>
 
         <ul class="list-unstyled p-3">
@@ -177,16 +193,35 @@
                     <i class="fa-solid fa-chart-pie"></i> <span>Dashboard Hasil</span>
                 </a>
             </li>
+            
+            <!-- Menu Dropdown Tahapan Analisis -->
             <li>
-                <a href="/sentiment" id="menu-sentiment">
-                    <i class="fa-solid fa-comments"></i> <span>Analisis Sentimen</span>
+                <a href="#submenu-pipeline" data-bs-toggle="collapse" aria-expanded="false" class="justify-content-between align-items-center" id="menu-pipeline-parent">
+                    <div>
+                        <i class="fa-solid fa-diagram-project"></i> <span>Tahapan Analisis</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down sidebar-arrow small"></i>
                 </a>
+                <ul class="collapse sidebar-submenu" id="submenu-pipeline">
+                    <li>
+                        <a href="/pipeline?stage=1" id="sub-stage-1">Preprocessing Teks
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/pipeline?stage=2" id="sub-stage-2"> Model SVM
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/pipeline?stage=3" id="sub-stage-3"> Topic Modeling (LDA)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/pipeline?stage=4" id="sub-stage-4"> Pemetaan PIECES
+                        </a>
+                    </li>
+                </ul>
             </li>
-            <li>
-                <a href="/pipeline" id="menu-pipeline">
-                    <i class="fa-solid fa-diagram-project"></i> <span>Tahapan Analisis</span>
-                </a>
-            </li>
+
             <li>
                 <a href="/pieces" id="menu-pieces">
                     <i class="fa-solid fa-layer-group"></i> <span>Eksplorasi Sentimen & Topik</span>
@@ -206,7 +241,7 @@
         <div class="top-navbar d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center">
                 <i class="fa-solid fa-hospital-user text-primary fa-lg me-2 d-md-none"></i>
-                <span class="fw-bold text-primary d-md-none me-2">SentimenRS</span>
+                <span class="fw-bold text-primary d-md-none me-2">PIESCEScare</span>
                 <span class="fw-semibold text-muted small d-none d-sm-inline">
                     <i class="fa-solid fa-hospital me-1 text-primary"></i> Evaluasi Mutu Layanan Rumah Sakit (Framework PIECES & LDA Topic Modeling)
                 </span>
@@ -239,11 +274,7 @@
         <i class="fa-solid fa-chart-pie"></i>
         <span>Dashboard</span>
     </a>
-    <a href="/sentiment" class="nav-item-mobile" id="mobile-menu-sentiment">
-        <i class="fa-solid fa-comments"></i>
-        <span>Sentimen</span>
-    </a>
-    <a href="/pipeline" class="nav-item-mobile" id="mobile-menu-pipeline">
+    <a href="/pipeline?stage=1" class="nav-item-mobile" id="mobile-menu-pipeline">
         <i class="fa-solid fa-diagram-project"></i>
         <span>Tahapan</span>
     </a>
@@ -272,8 +303,8 @@
                     <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex p-3 mb-2">
                         <i class="fa-solid fa-file-lines fa-2xl"></i>
                     </div>
-                    <h5 class="fw-bold mb-1">Evaluasi Mutu Layanan Rumah Sakit Menggunakan Kerangka Kerja PIECES & LDA</h5>
-                    <p class="text-muted small mb-0">Pemetaan Sentimen SVM & Pemodelan Topik LDA Ulasan Google Maps Rumah Sakit ke Dimensi Kerangka Kerja PIECES</p>
+                    <h5 class="fw-bold mb-1">Model Analisis Mutu Layanan Rumah Sakit Menggunakan Pendekatan</h5>
+                    <h5 class="fw-bold mb-1">Data Mining pada Ulasan Digital ke dalam Dimensi PIECES</h5>
                 </div>
 
                 <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="fa-solid fa-users me-2 text-primary"></i>Tim Penulis Penelitian</h6>
@@ -302,10 +333,31 @@
                 <ul class="list-group list-group-flush small mb-0">
                     <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                         <div>
-                            <strong>Fikri Egnafis & Tim</strong>
+                            <strong>Fikri Egnafis</strong>
                             <div class="text-muted">Mahasiswa Sistem Informasi - Implementasi Dashboard Web Flask</div>
                         </div>
-                        <span class="badge bg-primary-subtle text-primary">Pengembang Web</span>
+                        <span class="badge bg-primary-subtle text-primary">Web Developer</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <strong>Dini Siskasari</strong>
+                            <div class="text-muted">Mahasiswa Sistem Informasi - Pembuatan Model</div>
+                        </div>
+                        <span class="badge bg-secondary-subtle text-secondary">Modeler</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <strong>Almayanti Susilia Ningrum</strong>
+                            <div class="text-muted">Mahasiswa Sistem Informasi - Pemetaan Kata Kunci PIECE</div>
+                        </div>
+                        <span class="badge bg-secondary-subtle text-secondary">PIECE Analyst</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <strong>Arga Gian Perdana</strong>
+                            <div class="text-muted">Mahasiswa Sistem Informasi - Pengumpul Data Ulasan</div>
+                        </div>
+                        <span class="badge bg-secondary-subtle text-secondary">Data Collection</span>
                     </li>
                 </ul>
             </div>
@@ -327,14 +379,16 @@
     $(document).ready(function () {
         // Matcher Navigasi Aktif Sidebar Desktop & Mobile Bottom Bar
         const path = window.location.pathname;
+        const searchParams = new URLSearchParams(window.location.search);
+        const stage = searchParams.get('stage') || '1';
+
         if (path === '/') {
             $('#menu-dashboard').addClass('active');
             $('#mobile-menu-dashboard').addClass('active');
-        } else if (path === '/sentiment') {
-            $('#menu-sentiment').addClass('active');
-            $('#mobile-menu-sentiment').addClass('active');
         } else if (path === '/pipeline') {
-            $('#menu-pipeline').addClass('active');
+            $('#menu-pipeline-parent').addClass('active').attr('aria-expanded', 'true');
+            $('#submenu-pipeline').addClass('show');
+            $(`#sub-stage-${stage}`).addClass('active');
             $('#mobile-menu-pipeline').addClass('active');
         } else if (path === '/pieces') {
             $('#menu-pieces').addClass('active');

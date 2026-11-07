@@ -130,49 +130,6 @@ def index():
       'index.html', metrics=metrics_summary, lda_pieces=lda_pieces_data
   )
 
-
-@app.route('/sentiment')
-def sentiment_page():
-  global df_reviews
-
-  page = request.args.get('page', 1, type=int)
-  rating = request.args.get('rating', 'all')
-  sentimen = request.args.get('sentimen', 'all')
-  per_page = 15
-
-  df_filtered = (
-      df_reviews.copy()
-      if not df_reviews.empty
-      else pd.DataFrame(
-          columns=['author_title', 'review_text', 'review_rating_numeric']
-      )
-  )
-
-  if rating != 'all' and 'review_rating_numeric' in df_filtered.columns:
-    df_filtered = df_filtered[
-        df_filtered['review_rating_numeric'] == int(rating)
-    ]
-  if sentimen != 'all' and 'sentimen' in df_filtered.columns:
-    df_filtered = df_filtered[df_filtered['sentimen'] == sentimen]
-
-  total_pages = max(1, (len(df_filtered) + per_page - 1) // per_page)
-  start_idx = (page - 1) * per_page
-  end_idx = start_idx + per_page
-
-  items = df_filtered.iloc[start_idx:end_idx].to_dict(orient='records')
-
-  return render_template(
-      'sentiment.html',
-      metrics=metrics_summary,
-      items=items,
-      page=page,
-      total_pages=total_pages,
-      rating=rating,
-      sentimen=sentimen,
-      total_count=len(df_filtered),
-  )
-
-
 @app.route('/pipeline')
 def pipeline():
   global df_reviews
