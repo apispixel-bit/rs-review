@@ -6,6 +6,8 @@
     <title>Dashboard Analisis Sentimen RS</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <!-- Google Fonts & FontAwesome -->
@@ -15,6 +17,7 @@
     <style>
         :root {
             --sidebar-width: 250px;
+            --bottom-nav-height: 65px;
         }
 
         body {
@@ -23,7 +26,7 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Sidebar Styling */
+        /* Sidebar Styling (Desktop) */
         #sidebar {
             min-width: var(--sidebar-width);
             max-width: var(--sidebar-width);
@@ -72,7 +75,7 @@
 
         #sidebar ul li a i { margin-right: 12px; width: 20px; text-align: center; }
 
-        /* Content Area & Top Navbar */
+        /* Content Area & Top Navbar Sticky */
         #content {
             width: calc(100% - var(--sidebar-width));
             margin-left: var(--sidebar-width);
@@ -83,6 +86,9 @@
         .top-navbar {
             padding: 12px 20px;
             transition: background-color 0.3s;
+            position: sticky;
+            top: 0;
+            z-index: 990;
         }
 
         [data-bs-theme="light"] .top-navbar { background: #ffffff; border-bottom: 1px solid #e9ecef; }
@@ -93,19 +99,72 @@
         @media (min-width: 768px) {
             .top-navbar { padding: 15px 30px; }
             .main-body { padding: 30px; }
+            .mobile-bottom-nav { display: none !important; }
         }
 
+        /* Mobile Adjustments & Bottom Bar Styling */
         @media (max-width: 767.98px) {
-            #sidebar { margin-left: calc(-1 * var(--sidebar-width)); }
-            #sidebar.active { margin-left: 0; }
-            #content { width: 100%; margin-left: 0; }
+            #sidebar { display: none !important; }
+            #content { width: 100%; margin-left: 0; padding-bottom: var(--bottom-nav-height); }
+            
+            .mobile-bottom-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: var(--bottom-nav-height);
+                z-index: 1000;
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+                transition: background-color 0.3s, border-color 0.3s;
+            }
+
+            [data-bs-theme="light"] .mobile-bottom-nav {
+                background: #ffffff;
+                border-top: 1px solid #e9ecef;
+            }
+
+            [data-bs-theme="dark"] .mobile-bottom-nav {
+                background: #1e1e2d;
+                border-top: 1px solid #2b2b40;
+            }
+
+            .mobile-bottom-nav .nav-item-mobile {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+                font-size: 0.72rem;
+                font-weight: 500;
+                color: #6c757d;
+                flex: 1;
+                height: 100%;
+                transition: all 0.2s ease;
+            }
+
+            [data-bs-theme="dark"] .mobile-bottom-nav .nav-item-mobile {
+                color: #a2a3b7;
+            }
+
+            .mobile-bottom-nav .nav-item-mobile i {
+                font-size: 1.15rem;
+                margin-bottom: 2px;
+            }
+
+            .mobile-bottom-nav .nav-item-mobile.active {
+                color: #0d6efd !important;
+                font-weight: 700;
+            }
         }
     </style>
 </head>
 <body>
 
 <div class="d-flex">
-    <!-- Sidebar Left -->
+    <!-- Sidebar Utama Desktop -->
     <nav id="sidebar">
         <div class="sidebar-header d-flex align-items-center">
             <i class="fa-solid fa-hospital-user text-primary fa-xl me-2"></i>
@@ -119,8 +178,18 @@
                 </a>
             </li>
             <li>
-                <a href="/preprocessing" id="menu-preprocessing">
-                    <i class="fa-solid fa-list-check"></i> <span>Preprocessing Data</span>
+                <a href="/sentiment" id="menu-sentiment">
+                    <i class="fa-solid fa-comments"></i> <span>Analisis Sentimen</span>
+                </a>
+            </li>
+            <li>
+                <a href="/pipeline" id="menu-pipeline">
+                    <i class="fa-solid fa-diagram-project"></i> <span>Tahapan Analisis</span>
+                </a>
+            </li>
+            <li>
+                <a href="/pieces" id="menu-pieces">
+                    <i class="fa-solid fa-layer-group"></i> <span>Eksplorasi Sentimen & Topik</span>
                 </a>
             </li>
             <li>
@@ -136,22 +205,19 @@
         <!-- Top Navbar Header -->
         <div class="top-navbar d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center">
-                <button type="button" id="sidebarCollapse" class="btn btn-sm btn-outline-primary me-2 me-sm-3 d-md-none">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
+                <i class="fa-solid fa-hospital-user text-primary fa-lg me-2 d-md-none"></i>
+                <span class="fw-bold text-primary d-md-none me-2">SentimenRS</span>
                 <span class="fw-semibold text-muted small d-none d-sm-inline">
-                    <i class="fa-solid fa-hospital me-1 text-primary"></i> Evaluasi Mutu Layanan Rumah Sakit (Framework PIECES)
+                    <i class="fa-solid fa-hospital me-1 text-primary"></i> Evaluasi Mutu Layanan Rumah Sakit (Framework PIECES & LDA Topic Modeling)
                 </span>
             </div>
 
             <!-- Action Controls (Theme Toggle & Info Modal Button) -->
             <div class="d-flex align-items-center gap-2">
-                <!-- Toggle Theme Dark / Light -->
                 <button class="btn btn-sm btn-outline-secondary rounded-circle p-2" id="btnThemeToggle" title="Ganti Tema Warna" style="width: 38px; height: 38px;">
                     <i class="fa-solid fa-moon" id="themeIcon"></i>
                 </button>
 
-                <!-- Button Modal About / Team Info (Responsif Teks Singkat di Mobile) -->
                 <button class="btn btn-sm btn-primary fw-semibold px-2 px-sm-3" data-bs-toggle="modal" data-bs-target="#modalAbout">
                     <i class="fa-solid fa-users me-1"></i> 
                     <span class="d-none d-sm-inline">Info Tim & Sistem</span>
@@ -167,7 +233,30 @@
     </div>
 </div>
 
-<!-- Modal Info Tim & Sistem -->
+<!-- Mobile Bottom Navigation Bar (Khusus Layar Mobile < 768px) -->
+<nav class="mobile-bottom-nav">
+    <a href="/" class="nav-item-mobile" id="mobile-menu-dashboard">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Dashboard</span>
+    </a>
+    <a href="/sentiment" class="nav-item-mobile" id="mobile-menu-sentiment">
+        <i class="fa-solid fa-comments"></i>
+        <span>Sentimen</span>
+    </a>
+    <a href="/pipeline" class="nav-item-mobile" id="mobile-menu-pipeline">
+        <i class="fa-solid fa-diagram-project"></i>
+        <span>Tahapan</span>
+    </a>
+    <a href="/pieces" class="nav-item-mobile" id="mobile-menu-pieces">
+        <i class="fa-solid fa-layer-group"></i>
+        <span>Topik</span>
+    </a>
+    <a href="/single" class="nav-item-mobile" id="mobile-menu-predict">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>Prediksi</span>
+    </a>
+</nav>
+
 <!-- Modal Info Tim & Sistem -->
 <div class="modal fade" id="modalAbout" tabindex="-1" aria-labelledby="modalAboutLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -183,8 +272,8 @@
                     <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex p-3 mb-2">
                         <i class="fa-solid fa-file-lines fa-2xl"></i>
                     </div>
-                    <h5 class="fw-bold mb-1">Hospital Service Quality Evaluation Using PIECES Framework</h5>
-                    <p class="text-muted small mb-0">Pemetaan Sentimen & Pemodelan Topik Ulasan Google Maps Rumah Sakit XYZ ke Dimensi PIECES</p>
+                    <h5 class="fw-bold mb-1">Evaluasi Mutu Layanan Rumah Sakit Menggunakan Kerangka Kerja PIECES & LDA</h5>
+                    <p class="text-muted small mb-0">Pemetaan Sentimen SVM & Pemodelan Topik LDA Ulasan Google Maps Rumah Sakit ke Dimensi Kerangka Kerja PIECES</p>
                 </div>
 
                 <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="fa-solid fa-users me-2 text-primary"></i>Tim Penulis Penelitian</h6>
@@ -216,7 +305,7 @@
                             <strong>Fikri Egnafis & Tim</strong>
                             <div class="text-muted">Mahasiswa Sistem Informasi - Implementasi Dashboard Web Flask</div>
                         </div>
-                        <span class="badge bg-primary-subtle text-primary">Web Developer</span>
+                        <span class="badge bg-primary-subtle text-primary">Pengembang Web</span>
                     </li>
                 </ul>
             </div>
@@ -236,18 +325,26 @@
 
 <script>
     $(document).ready(function () {
-        // Active Sidebar Menu
+        // Matcher Navigasi Aktif Sidebar Desktop & Mobile Bottom Bar
         const path = window.location.pathname;
-        if (path === '/') $('#menu-dashboard').addClass('active');
-        else if (path === '/preprocessing') $('#menu-preprocessing').addClass('active');
-        else if (path === '/single') $('#menu-predict').addClass('active');
+        if (path === '/') {
+            $('#menu-dashboard').addClass('active');
+            $('#mobile-menu-dashboard').addClass('active');
+        } else if (path === '/sentiment') {
+            $('#menu-sentiment').addClass('active');
+            $('#mobile-menu-sentiment').addClass('active');
+        } else if (path === '/pipeline') {
+            $('#menu-pipeline').addClass('active');
+            $('#mobile-menu-pipeline').addClass('active');
+        } else if (path === '/pieces') {
+            $('#menu-pieces').addClass('active');
+            $('#mobile-menu-pieces').addClass('active');
+        } else if (path === '/single') {
+            $('#menu-predict').addClass('active');
+            $('#mobile-menu-predict').addClass('active');
+        }
 
-        // Toggle Sidebar Mobile
-        $('#sidebarCollapse').on('click', function () {
-            $('#sidebar').toggleClass('active');
-        });
-
-        // Toggle Dark Mode / Light Mode
+        // Penanganan Switch Mode Terang / Gelap
         const savedTheme = localStorage.getItem('app-theme') || 'light';
         setTheme(savedTheme);
 

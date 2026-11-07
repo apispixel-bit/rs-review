@@ -1,0 +1,31 @@
+{
+  "coherence_scores": {
+    "2": 0.42,
+    "3": 0.48,
+    "4": 0.51,
+    "5": 0.55,
+    "6": 0.53,
+    "7": 0.52,
+    "8": 0.50,
+    "9": 0.58
+  },
+  "topics": [
+    {"id": 1, "sentiment": "positif", "name": "Pelayanan Dokter & Perawat", "words": ["dokter", "perawat", "ramah", "baik", "penjelas"], "weight": 0.22},
+    {"id": 2, "sentiment": "positif", "name": "Fasilitas & Kenyamanan", "words": ["bersih", "nyaman", "ruang", "fasilitas", "bagus"], "weight": 0.18},
+    {"id": 3, "sentiment": "positif", "name": "Kepuasan Layanan Umum", "words": ["puas", "layanan", "bantu", "tanggap", "bagus"], "weight": 0.15},
+    {"id": 4, "sentiment": "positif", "name": "Penanganan Cepat", "words": ["cepat", "tindak", "penangan", "cekatan", "baik"], "weight": 0.12},
+    {"id": 5, "sentiment": "negatif", "name": "Antrean & Pendaftaran", "words": ["antre", "lama", "daftar", "loket", "tunggu"], "weight": 0.11},
+    {"id": 6, "sentiment": "negatif", "name": "Jam Operasional & Jadwal", "words": ["jam", "jadwal", "lambat", "tunggu", "molor"], "weight": 0.08},
+    {"id": 7, "sentiment": "negatif", "name": "Pengambilan Obat & Farmasi", "words": ["obat", "antre", "farmasi", "racik", "lama"], "weight": 0.06},
+    {"id": 8, "sentiment": "negatif", "name": "Layanan BPJS & Administrasi", "words": ["bpjs", "berkas", "rujuk", "syarat", "dipos"], "weight": 0.05},
+    {"id": 9, "sentiment": "negatif", "name": "Komunikasi Petugas", "words": ["petugas", "jutek", "jelas", "kurang", "abaikan"], "weight": 0.03}
+  ],
+  "pieces_mapping": {
+    "Performance": {"topics_count": 0, "topics": [], "desc": "Kemampuan menyelesaikan tugas (Tidak ada topik utama)"},
+    "Information": {"topics_count": 0, "topics": [], "desc": "Kualitas informasi yang disampaikan (Tidak ada topik utama)"},
+    "Economics": {"topics_count": 0, "topics": [], "desc": "Kaitan biaya, harga, dan manfaat (Tidak ada topik utama)"},
+    "Control": {"topics_count": 0, "topics": [], "desc": "Pengendalian, keamanan, dan privasi (Tidak ada topik utama)"},
+    "Efficiency": {"topics_count": 4, "topics": ["Antrean & Pendaftaran", "Jam Operasional & Jadwal", "Pengambilan Obat & Farmasi", "Layanan BPJS & Administrasi"], "desc": "Penggunaan sumber daya (waktu, antrean, proses)"},
+    "Service": {"topics_count": 5, "topics": ["Pelayanan Dokter & Perawat", "Fasilitas & Kenyamanan", "Kepuasan Layanan Umum", "Penanganan Cepat", "Komunikasi Petugas"], "desc": "Kualitas pelayanan dan responsivitas staf"}
+  }
+}

@@ -3,6 +3,14 @@
 {% block content %}
 <style>
     /* Styling Custom Card agar Selaras dengan Dashboard */
+    .hero-banner {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        border-radius: 14px;
+        padding: 24px;
+        color: #ffffff !important;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+    }
+
     .dashboard-card {
         border-radius: 14px;
         transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -23,19 +31,29 @@
     .dashboard-card:hover {
         transform: translateY(-2px);
     }
+
+    .badge-pipeline {
+        background: rgba(99, 102, 241, 0.15);
+        color: #6366f1 !important;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+    }
 </style>
 
-<div class="mb-4">
-    <h3 class="fw-bold mb-1"><i class="fa-solid fa-wand-magic-sparkles text-primary me-2"></i>Uji Sentimen Ulasan Tunggal</h3>
-    <p class="text-muted small mb-0">Simulasi prediksi sentimen secara real-time menggunakan pipeline preprocessing NLP & model SVM.</p>
+<!-- Header Utama (Hero Banner Seragam) -->
+<div class="hero-banner mb-4">
+    <h3 class="fw-bold mb-1 text-white">Uji Sentimen Ulasan Tunggal</h3>
+    <p class="mb-0 text-white-50 small">Simulasi Prediksi Sentimen Ulasan Pasien Secara Real-Time Menggunakan Pipeline Preprocessing NLP & Model Support Vector Machine (SVM)</p>
 </div>
 
 <div class="row g-4">
     <!-- Kolom Utama: Form Pengujian & Hasil -->
     <div class="col-lg-8">
         <div class="card border-0 dashboard-card p-2">
-            <div class="card-header fw-bold py-3 bg-transparent border-bottom">
-                <i class="fa-solid fa-pen-to-square text-primary me-2"></i>Form Masukan Teks Ulasan
+            <div class="card-header fw-bold py-3 bg-transparent border-bottom d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="fa-solid fa-pen-to-square text-primary me-2"></i>Form Masukan Teks Ulasan
+                </div>
+                <span class="badge bg-light text-dark border small fw-normal">Input Real-Time</span>
             </div>
             <div class="card-body p-4">
                 <div class="mb-3">
@@ -58,7 +76,7 @@
                     
                     <div class="p-3 mb-3 bg-body-tertiary rounded border">
                         <small class="text-muted d-block fw-semibold mb-1">Teks Setelah Normalisasi & Preprocessing:</small>
-                        <span id="cleanedText" class="fst-italic"></span>
+                        <span id="cleanedText" class="fst-italic font-monospace"></span>
                     </div>
 
                     <div class="alert mt-3 mb-0" id="sentimentBadge" role="alert">

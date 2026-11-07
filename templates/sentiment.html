@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Styling & Variabel Adaptif Dashboard */
+    [data-bs-theme="light"] {
+        --dash-bg-card: #ffffff;
+        --dash-border-card: rgba(0, 0, 0, 0.08);
+        --dash-text-main: #1e293b;
+        --dash-text-muted: #64748b;
+        --dash-bg-inner: #f8fafc; /* Latar terang default (putih netral) */
+        --wc-text-shadow: rgba(0, 0, 0, 0.05);
+    }
+
+    [data-bs-theme="dark"] {
+        --dash-bg-card: #181824;
+        --dash-border-card: rgba(255, 255, 255, 0.08);
+        --dash-text-main: #f8fafc;
+        --dash-text-muted: #94a3b8;
+        --dash-bg-inner: #11111c; /* Latar gelap saat mode dark */
+        --wc-text-shadow: rgba(0, 0, 0, 0.4);
+    }
+
+    .hero-banner {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        border-radius: 14px;
+        padding: 24px;
+        color: #ffffff !important;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .dashboard-card {
+        background-color: var(--dash-bg-card) !important;
+        border: 1px solid var(--dash-border-card) !important;
+        border-radius: 14px;
+        color: var(--dash-text-main) !important;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .text-muted-custom {
+        color: var(--dash-text-muted) !important;
+    }
+
+    .inner-stat-box {
+        background-color: var(--dash-bg-inner) !important;
+        border: 1px solid var(--dash-border-card) !important;
+    }
+
+    /* Container Box Wordcloud Teks Adaptif */
+    .wordcloud-canvas-box {
+        background-color: var(--dash-bg-inner) !important;
+        border: 1px solid var(--dash-border-card) !important;
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 6px 14px;
+        min-height: 250px;
+        text-align: center;
+        transition: background-color 0.3s ease;
+    }
+
+    /* Base Styling Teks Wordcloud */
+    .wc-text {
+        display: inline-block;
+        font-weight: 700;
+        line-height: 1.3;
+        transition: transform 0.2s ease;
+        cursor: default;
+    }
+    .wc-text:hover {
+        transform: scale(1.15);
+        z-index: 10;
+    }
+
+    /* Skala Ukuran Font Wordcloud */
+    .wc-size-xl { font-size: 1.9rem; }
+    .wc-size-lg { font-size: 1.45rem; }
+    .wc-size-md { font-size: 1.15rem; }
+    .wc-size-sm { font-size: 0.92rem; }
+    .wc-size-xs { font-size: 0.78rem; opacity: 0.85; }
+
+    /* Warna Teks Wordcloud Sesuai Jurnal (Viridis & Purple Palettes) */
+    .wc-c-purple { color: #481567; }
+    .wc-c-indigo { color: #33638d; }
+    .wc-c-teal   { color: #1f968b; }
+    .wc-c-green  { color: #29af7f; }
+    .wc-c-lime   { color: #73d055; }
+    .wc-c-yellow { color: #dce319; }
+
+    [data-bs-theme="dark"] .wc-c-purple { color: #a855f7; }
+    [data-bs-theme="dark"] .wc-c-indigo { color: #60a5fa; }
+    [data-bs-theme="dark"] .wc-c-teal   { color: #2dd4bf; }
+    [data-bs-theme="dark"] .wc-c-green  { color: #4ade80; }
+    [data-bs-theme="dark"] .wc-c-lime   { color: #a3e635; }
+    [data-bs-theme="dark"] .wc-c-yellow { color: #facc15; }
+
+    @media (max-width: 767.98px) {
+        .hero-banner { padding: 18px 16px; }
+        .hero-banner h4 { font-size: 1.25rem; }
+        .dashboard-card { padding: 1.25rem !important; }
+        .chart-container-mobile { height: 210px !important; }
+        .wordcloud-canvas-box { padding: 1rem; gap: 4px 8px; min-height: 200px; }
+        .wc-size-xl { font-size: 1.4rem; }
+        .wc-size-lg { font-size: 1.15rem; }
+        .wc-size-md { font-size: 0.95rem; }
+        .wc-size-sm { font-size: 0.8rem; }
+        .wc-size-xs { font-size: 0.7rem; }
+    }
+</style>
+
+<!-- Header Utama Page -->
+<div class="hero-banner mb-3 mb-md-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+        <div>
+            <h3 class="fw-bold mb-1 text-white">Analisis Wawasan Sentimen</h3>
+            <p class="mb-0 text-white-50 small">Evaluasi Mutu Layanan Rumah Sakit Menggunakan Support Vector Machine (SVM) & LDA Topic Modeling</p>
+        </div>
+        <span class="badge bg-white text-primary px-3 py-2 rounded-pill small fw-semibold self-start">
+            Total Dataset: 2.218 Ulasan
+        </span>
+    </div>
+</div>
+
+<!-- Modul Penjelasan Ringkasan Hasil Penelitian (IEEE Style) -->
+<div class="card dashboard-card p-4 mb-4">
+    <h6 class="fw-bold mb-3"><i class="bi bi-journal-text me-2 text-primary"></i>Ringkasan Hasil Penelitian Sentimen RS XYZ</h6>
+    <ul class="list-unstyled mb-0 small text-muted-custom">
+        <li class="mb-2">
+            <strong class="text-primary"><i class="bi bi-dot"></i> Positive & Negative Highlights:</strong>
+            Dari total 2.218 ulasan bersih pasien, didapatkan distribusi <strong>75,25% (1.669 ulasan) bersentimen positif</strong> dan <strong>24,75% (549 ulasan) bersentimen negatif</strong>.
+        </li>
+        <li class="mb-2">
+            <strong class="text-primary"><i class="bi bi-dot"></i> Accuracy Evaluation (80:20 Split):</strong>
+            Model Support Vector Machine (SVM Linear) menghasilkan tingkat <strong>Akurasi 95,05%</strong> dan weighted F1-Score sebesar <strong>0,95</strong> pada 444 sampel data uji.
+        </li>
+        <li class="mb-2">
+            <strong class="text-primary"><i class="bi bi-dot"></i> Sentiment Real vs Prediction:</strong>
+            Perbandingan proporsi distribusi sentimen aktual berdasarkan nilai rating Google Maps (Rating 1-3 = Negatif, Rating 4-5 = Positif) dengan hasil klasifikasi otomatis algoritma SVM.
+        </li>
+        <li class="mb-0">
+            <strong class="text-primary"><i class="bi bi-dot"></i> Wordcloud Positive & Negative Sentiment:</strong>
+            Representasi kata kunci berbobot TF-IDF tertinggi yang paling sering muncul dalam kelompok ulasan positif (pujian dokter, perawat, fasilitas) dan negatif (antrean loket, farmasi, jam operasional).
+        </li>
+    </ul>
+</div>
+
+<!-- Row 1: Pie Charts (Sentiment Real vs Sentiment Prediction) -->
+<div class="row g-3 g-md-4 mb-4">
+    <!-- Chart Sentiment Real -->
+    <div class="col-12 col-md-6">
+        <div class="card dashboard-card p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+                <h6 class="fw-bold mb-1 text-center"><i class="bi bi-pie-chart-fill me-2 text-primary"></i>Sentiment Real (Aktual Rating)</h6>
+                <span class="text-muted-custom small d-block text-center mb-3">Berdasarkan Labeling Rating Pasien (1.669 Positif vs 549 Negatif)</span>
+                
+                <div class="chart-container-mobile" style="position: relative; height: 210px;">
+                    <canvas id="chartSentimentReal"></canvas>
+                </div>
+            </div>
+
+            <div class="p-3 inner-stat-box rounded text-center mt-3">
+                <h3 class="fw-bold text-success mb-0 fs-4">75,25%</h3>
+                <small class="text-muted-custom">Proporsi Ulasan Positif (Rating 4–5)</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Sentiment Prediction -->
+    <div class="col-12 col-md-6">
+        <div class="card dashboard-card p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+                <h6 class="fw-bold mb-1 text-center"><i class="bi bi-pie-chart-fill me-2 text-danger"></i>Sentiment Prediction (Model SVM)</h6>
+                <span class="text-muted-custom small d-block text-center mb-3">Hasil Prediksi SVM Linear Kernel pada Sampel Pengujian Data</span>
+                
+                <div class="chart-container-mobile" style="position: relative; height: 210px;">
+                    <canvas id="chartSentimentPred"></canvas>
+                </div>
+            </div>
+
+            <div class="p-3 inner-stat-box rounded text-center mt-3">
+                <h3 class="fw-bold text-primary mb-0 fs-4">95.05%</h3>
+                <small class="text-muted-custom">Akurasi Pengujian Model (80:20 Split Data)</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 2: Wordcloud Positive & Negative Sentiment (Sesuai Term Figure 5 & 6 Jurnal) -->
+<div class="row g-3 g-md-4 mb-4">
+    <!-- Wordcloud Positif (Figure 5) -->
+    <div class="col-12 col-md-6">
+        <div class="card dashboard-card p-4 h-100">
+            <h6 class="fw-bold mb-3"><i class="bi bi-chat-left-heart me-2 text-success"></i>Wordcloud Positive Sentiment (Figure 5 Jurnal)</h6>
+            
+            <div class="wordcloud-canvas-box">
+                <span class="wc-text wc-size-xl wc-c-purple">daftar</span>
+                <span class="wc-text wc-size-xl wc-c-purple">obat</span>
+                <span class="wc-text wc-size-xl wc-c-purple">baik</span>
+                <span class="wc-text wc-size-xl wc-c-purple">bagus</span>
+                <span class="wc-text wc-size-xl wc-c-purple">sakit</span>
+                <span class="wc-text wc-size-xl wc-c-purple">xyz</span>
+                <span class="wc-text wc-size-xl wc-c-purple">sangat</span>
+
+                <span class="wc-text wc-size-lg wc-c-indigo">periksa</span>
+                <span class="wc-text wc-size-lg wc-c-indigo">perawat</span>
+                <span class="wc-text wc-size-lg wc-c-indigo">dokter</span>
+                <span class="wc-text wc-size-lg wc-c-indigo">puas</span>
+                <span class="wc-text wc-size-lg wc-c-indigo">rumah</span>
+                <span class="wc-text wc-size-lg wc-c-indigo">cepat</span>
+
+                <span class="wc-text wc-size-md wc-c-teal">antre</span>
+                <span class="wc-text wc-size-md wc-c-teal">pasien</span>
+                <span class="wc-text wc-size-md wc-c-teal">nyaman</span>
+                <span class="wc-text wc-size-md wc-c-teal">jelas</span>
+                <span class="wc-text wc-size-md wc-c-teal">bantu</span>
+                <span class="wc-text wc-size-md wc-c-teal">kasih</span>
+
+                <span class="wc-text wc-size-sm wc-c-green">tunggu</span>
+                <span class="wc-text wc-size-sm wc-c-green">lama</span>
+                <span class="wc-text wc-size-sm wc-c-green">ruang</span>
+                <span class="wc-text wc-size-sm wc-c-green">bersih</span>
+                <span class="wc-text wc-size-sm wc-c-green">petugas</span>
+                <span class="wc-text wc-size-sm wc-c-green">terima</span>
+                <span class="wc-text wc-size-sm wc-c-green">semoga</span>
+
+                <span class="wc-text wc-size-xs wc-c-lime">jam</span>
+                <span class="wc-text wc-size-xs wc-c-lime">poliklinik</span>
+                <span class="wc-text wc-size-xs wc-c-lime">nya</span>
+                <span class="wc-text wc-size-xs wc-c-lime">rawat</span>
+                <span class="wc-text wc-size-xs wc-c-lime">sama</span>
+                <span class="wc-text wc-size-xs wc-c-lime">saya</span>
+                <span class="wc-text wc-size-xs wc-c-yellow">terimakasih</span>
+                <span class="wc-text wc-size-xs wc-c-yellow">selalu</span>
+                <span class="wc-text wc-size-xs wc-c-yellow">mbak</span>
+                <span class="wc-text wc-size-xs wc-c-yellow">sekali</span>
+                <span class="wc-text wc-size-xs wc-c-yellow">farmasi</span>
+                <span class="wc-text wc-size-xs wc-c-yellow">rsu</span>
+                <span class="wc-text wc-size-xs wc-c-yellow">makin</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wordcloud Negatif (Figure 6) -->
+    <div class="col-12 col-md-6">
+        <div class="card dashboard-card p-4 h-100">
+            <h6 class="fw-bold mb-3"><i class="bi bi-chat-left-quote me-2 text-danger"></i>Wordcloud Negative Sentiment (Figure 6 Jurnal)</h6>
+            
+            <div class="wordcloud-canvas-box">
+                <span class="wc-text wc-size-xl wc-c-purple">dokter</span>
+                <span class="wc-text wc-size-xl wc-c-purple">sakit</span>
+                <span class="wc-text wc-size-xl wc-c-purple">bpjs</span>
+                <span class="wc-text wc-size-xl wc-c-purple">nya</span>
+                <span class="wc-text wc-size-xl wc-c-purple">antre</span>
+                <span class="wc-text wc-size-xl wc-c-purple">periksa</span>
+                <span class="wc-text wc-size-xl wc-c-purple">lama</span>
+                <span class="wc-text wc-size-xl wc-c-purple">layanan</span>
+
+                <span class="wc-text wc-size-lg wc-c-indigo">saya</span>
+                <span class="wc-text wc-size-lg wc-c-indigo">jam</span>
+                <span class="wc-text wc-size-lg wc-c-indigo">kalau</span>
+                <span class="wc-text wc-size-lg wc-c-indigo">perawat</span>
+                <span class="wc-text wc-size-lg wc-c-indigo">ada</span>
+                <span class="wc-text wc-size-lg wc-c-indigo">pasien</span>
+
+                <span class="wc-text wc-size-md wc-c-teal">anak</span>
+                <span class="wc-text wc-size-md wc-c-teal">rumah</span>
+                <span class="wc-text wc-size-md wc-c-teal">pakai</span>
+                <span class="wc-text wc-size-md wc-c-teal">poliklinik</span>
+                <span class="wc-text wc-size-md wc-c-teal">ramah</span>
+                <span class="wc-text wc-size-md wc-c-teal">daftar</span>
+
+                <span class="wc-text wc-size-sm wc-c-green">tidak</span>
+                <span class="wc-text wc-size-sm wc-c-green">bilang</span>
+                <span class="wc-text wc-size-sm wc-c-green">ambil</span>
+                <span class="wc-text wc-size-sm wc-c-green">sama</span>
+                <span class="wc-text wc-size-sm wc-c-green">gedung</span>
+                <span class="wc-text wc-size-sm wc-c-green">panggil</span>
+                <span class="wc-text wc-size-sm wc-c-green">bagus</span>
+                <span class="wc-text wc-size-sm wc-c-green">hari</span>
+
+                <span class="wc-text wc-size-xs wc-c-lime">apa</span>
+                <span class="wc-text wc-size-xs wc-c-lime">padahal</span>
+                <span class="wc-text wc-size-xs wc-c-lime">operasi</span>
+                <span class="wc-text wc-size-xs wc-c-lime">banget</span>
+                <span class="wc-text wc-size-xs wc-c-lime">di</span>
+                <span class="wc-text wc-size-xs wc-c-lime">umum</span>
+                <span class="wc-text wc-size-xs wc-c-yellow">datang</span>
+                <span class="wc-text wc-size-xs wc-c-yellow">baru</span>
+                <span class="wc-text wc-size-xs wc-c-yellow">sampai</span>
+                <span class="wc-text wc-size-xs wc-c-yellow">kecewa</span>
+                <span class="wc-text wc-size-xs wc-c-yellow">sangat</span>
+                <span class="wc-text wc-size-xs wc-c-yellow">farmasi</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        const isDark = $('html').attr('data-bs-theme') === 'dark';
+        const textColor = isDark ? '#cbd5e1' : '#475569';
+
+        // 1. Chart Sentiment Real (Pie Chart)
+        new Chart(document.getElementById('chartSentimentReal'), {
+            type: 'pie',
+            data: {
+                labels: ['Positif (1.669 Ulasan)', 'Negatif (549 Ulasan)'],
+                datasets: [{
+                    data: [1669, 549],
+                    backgroundColor: ['#3b82f6', '#cbd5e1'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: textColor, padding: 12, font: { size: 11 } }
+                    }
+                }
+            }
+        });
+
+        // 2. Chart Sentiment Prediction (Pie Chart)
+        new Chart(document.getElementById('chartSentimentPred'), {
+            type: 'pie',
+            data: {
+                labels: ['Prediksi Positif', 'Prediksi Negatif'],
+                datasets: [{
+                    data: [332, 112],
+                    backgroundColor: ['#dc2626', '#fce7f3'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: textColor, padding: 12, font: { size: 11 } }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

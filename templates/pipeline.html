@@ -1,0 +1,714 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Variabel & Styling Adaptif Seragam */
+    [data-bs-theme="light"] {
+        --dash-bg-card: #ffffff;
+        --dash-border-card: rgba(0, 0, 0, 0.08);
+        --dash-text-main: #1e293b;
+        --dash-text-muted: #64748b;
+        --dash-bg-inner: #f8fafc;
+        --dash-chart-grid: rgba(0, 0, 0, 0.06);
+        --table-header-bg: #f1f5f9;
+        --table-header-text: #334155;
+        --table-border-color: rgba(0, 0, 0, 0.08);
+        --table-box-bg: #f8fafc;
+    }
+
+    [data-bs-theme="dark"] {
+        --dash-bg-card: #181824;
+        --dash-border-card: rgba(255, 255, 255, 0.08);
+        --dash-text-main: #f8fafc;
+        --dash-text-muted: #94a3b8;
+        --dash-bg-inner: #11111c;
+        --dash-chart-grid: rgba(255, 255, 255, 0.08);
+        --table-header-bg: #212130;
+        --table-header-text: #e2e8f0;
+        --table-border-color: rgba(255, 255, 255, 0.08);
+        --table-box-bg: #11111c;
+    }
+
+    .hero-banner {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        border-radius: 14px;
+        padding: 24px;
+        color: #ffffff !important;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .dashboard-card {
+        background-color: var(--dash-bg-card) !important;
+        border: 1px solid var(--dash-border-card) !important;
+        border-radius: 14px;
+        color: var(--dash-text-main) !important;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .text-muted-custom {
+        color: var(--dash-text-muted) !important;
+    }
+
+    .inner-stat-box {
+        background-color: var(--dash-bg-inner) !important;
+        border: 1px solid var(--dash-border-card) !important;
+    }
+
+    /* Scrollable Horizontal Navigation Pill untuk Mobile */
+    .nav-pills-scrollable {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+    }
+    .nav-pills-scrollable::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Custom Table Dark Mode Friendly */
+    .custom-table {
+        color: var(--dash-text-main) !important;
+    }
+
+    .custom-table thead tr {
+        background-color: var(--table-header-bg) !important;
+        color: var(--table-header-text) !important;
+        border-bottom: 1px solid var(--table-border-color) !important;
+    }
+
+    .custom-table thead th {
+        background-color: transparent !important;
+        color: var(--table-header-text) !important;
+        font-weight: 600;
+        padding: 12px 16px;
+    }
+
+    .custom-table tbody tr {
+        border-bottom: 1px solid var(--table-border-color) !important;
+    }
+
+    .custom-table tbody td {
+        background-color: transparent !important;
+        color: var(--dash-text-main) !important;
+    }
+
+    .table-result-box {
+        background-color: var(--table-box-bg) !important;
+        border: 1px solid var(--table-border-color) !important;
+        color: var(--dash-text-main) !important;
+    }
+
+    @media (max-width: 767.98px) {
+        .hero-banner {
+            padding: 18px 16px;
+        }
+        .hero-banner h4 {
+            font-size: 1.25rem;
+        }
+        .dashboard-card {
+            padding: 1.25rem !important;
+        }
+        .chart-container-mobile {
+            height: 200px !important;
+        }
+    }
+</style>
+
+<!-- Header Utama Page -->
+<div class="hero-banner mb-3 mb-md-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+        <div>
+            <h3 class="fw-bold mb-1 text-white">Tahapan & Metodologi Analisis</h3>
+            <p class="mb-0 text-white-50 small">Alur Pipeline: Preprocessing Teks → Klasifikasi Sentimen SVM → Pemodelan Topik LDA → Pemetaan PIECES</p>
+        </div>
+        <span class="badge bg-white text-primary px-3 py-2 rounded-pill small fw-semibold self-start">
+            Total Dataset: {{ total_count }} Ulasan Pasien
+        </span>
+    </div>
+</div>
+
+<!-- Sub-Menu Utama Tahapan Analisis (Pita Tombol Navigasi Scrollable Mobile) -->
+<ul class="nav nav-pills nav-pills-scrollable gap-2 mb-4 bg-body-tertiary p-2 rounded-3 border">
+    <li class="nav-item">
+        <a class="nav-link {{ 'active fw-bold' if active_stage | default('1') == '1' }}" href="/pipeline?stage=1">
+            <i class="bi bi-1-square me-1"></i> 1. Preprocessing Teks
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {{ 'active fw-bold' if active_stage == '2' }}" href="/pipeline?stage=2">
+            <i class="bi bi-2-square me-1"></i> 2. Model Klasifikasi SVM
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {{ 'active fw-bold' if active_stage == '3' }}" href="/pipeline?stage=3">
+            <i class="bi bi-3-square me-1"></i> 3. Topic Modeling (LDA)
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {{ 'active fw-bold' if active_stage == '4' }}" href="/pipeline?stage=4">
+            <i class="bi bi-4-square me-1"></i> 4. Pemetaan Dimensi PIECES
+        </a>
+    </li>
+</ul>
+
+<!-- ================= SUB-MENU 1: PREPROCESSING TEKS ================= -->
+{% if active_stage | default('1') == '1' %}
+<!-- Modul Metodologi Preprocessing (Kartu Langkah) -->
+<div class="card dashboard-card p-4 mb-4">
+    <h6 class="fw-bold mb-3"><i class="bi bi-list-task me-2 text-primary"></i>Tahap 1: Pembersihan & Normalisasi Teks Ulasan</h6>
+    <p class="text-muted-custom small mb-4">Proses preparasi teks ulasan mentah (*raw data*) melalui 5 tahapan sequential guna meningkatkan kualitas pembobotan TF-IDF:</p>
+    
+    <div class="row g-2 g-md-3">
+        <div class="col-6 col-md">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <span class="badge bg-primary mb-2">Langkah 1</span>
+                <h6 class="fw-bold small mb-1">Cleansing & Case Folding</h6>
+                <p class="text-muted-custom extra-small mb-0" style="font-size: 0.78rem;">Menghapus karakter spesial, angka, emotikon, URL, serta lowercase.</p>
+            </div>
+        </div>
+        <div class="col-6 col-md">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <span class="badge bg-primary mb-2">Langkah 2</span>
+                <h6 class="fw-bold small mb-1">Normalisasi Kamus</h6>
+                <p class="text-muted-custom extra-small mb-0" style="font-size: 0.78rem;">Mengubah kata tidak baku/singkatan (*yg*, *rs*, *sy*) menggunakan kamus pemetaan 300 kata.</p>
+            </div>
+        </div>
+        <div class="col-6 col-md">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <span class="badge bg-primary mb-2">Langkah 3</span>
+                <h6 class="fw-bold small mb-1">Stopword Removal</h6>
+                <p class="text-muted-custom extra-small mb-0" style="font-size: 0.78rem;">Menghilangkan kata hubung atau kata umum yang tidak memuat informasi sentimen.</p>
+            </div>
+        </div>
+        <div class="col-6 col-md">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <span class="badge bg-primary mb-2">Langkah 4</span>
+                <h6 class="fw-bold small mb-1">Stemming (Sastrawi)</h6>
+                <p class="text-muted-custom extra-small mb-0" style="font-size: 0.78rem;">Mengembalikan kata berimbuhan menjadi kata dasar (*pelayanan* → *layan*).</p>
+            </div>
+        </div>
+        <div class="col-12 col-md">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <span class="badge bg-primary mb-2">Langkah 5</span>
+                <h6 class="fw-bold small mb-1">Ekstraksi Fitur TF-IDF</h6>
+                <p class="text-muted-custom extra-small mb-0" style="font-size: 0.78rem;">Mengonversi teks menjadi matriks numerik berbobot TF-IDF (1.814 kata).</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section Hasil Eksekusi Per Tahap (Tabel Interaktif) -->
+<div class="card dashboard-card p-4">
+    <h6 class="fw-bold mb-3"><i class="bi bi-table me-2 text-primary"></i>Eksplorasi Hasil Preprocessing Per Tahap</h6>
+
+    <!-- Tab Navigasi Per Langkah (Scrollable Mobile) -->
+    <ul class="nav nav-pills nav-pills-scrollable mb-3 gap-2 bg-body-tertiary p-2 rounded border">
+        <li class="nav-item">
+            <a class="nav-link {{ 'active fw-bold' if current_step == 'clean' }}" href="/pipeline?stage=1&step=clean">
+                1. Cleansing & Lowercase
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active fw-bold' if current_step == 'normal' }}" href="/pipeline?stage=1&step=normal">
+                2. Normalisasi Slang
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active fw-bold' if current_step == 'stopword' }}" href="/pipeline?stage=1&step=stopword">
+                3. Stopword Removal
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active fw-bold' if current_step == 'stem' }}" href="/pipeline?stage=1&step=stem">
+                4. Stemming (Sastrawi)
+            </a>
+        </li>
+    </ul>
+
+    <!-- Filter Rating & Sentimen Form Responsive -->
+    <form method="GET" action="/pipeline" class="row g-2 align-items-center mb-3">
+        <input type="hidden" name="stage" value="1">
+        <input type="hidden" name="step" value="{{ current_step }}">
+        <div class="col-auto">
+            <span class="small fw-semibold">Filter:</span>
+        </div>
+        <div class="col-6 col-sm-auto">
+            <select name="rating" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="all" {{ 'selected' if rating == 'all' }}>Semua Rating (1-5)</option>
+                <option value="5" {{ 'selected' if rating == '5' }}>Rating 5</option>
+                <option value="4" {{ 'selected' if rating == '4' }}>Rating 4</option>
+                <option value="3" {{ 'selected' if rating == '3' }}>Rating 3</option>
+                <option value="2" {{ 'selected' if rating == '2' }}>Rating 2</option>
+                <option value="1" {{ 'selected' if rating == '1' }}>Rating 1</option>
+            </select>
+        </div>
+        <div class="col-6 col-sm-auto">
+            <select name="sentimen" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="all" {{ 'selected' if sentimen == 'all' }}>Semua Sentimen</option>
+                <option value="positif" {{ 'selected' if sentimen == 'positif' }}>Positif</option>
+                <option value="negatif" {{ 'selected' if sentimen == 'negatif' }}>Negatif</option>
+            </select>
+        </div>
+    </form>
+
+    <!-- Tabel Data Responsive & Adaptif Mode Gelap -->
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 custom-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%">No</th>
+                    <th style="width: 15%">Pengulas</th>
+                    <th style="width: 40%">Teks Mentah (Raw Data)</th>
+                    <th style="width: 40%">
+                        {% if current_step == 'clean' %} Hasil Cleansing & Case Folding
+                        {% elif current_step == 'normal' %} Hasil Normalisasi Kamus Slang
+                        {% elif current_step == 'stopword' %} Hasil Stopword Removal
+                        {% else %} Hasil Stemming (Sastrawi)
+                        {% endif %}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in items %}
+                <tr>
+                    <td>{{ (page - 1) * 15 + loop.index }}</td>
+                    <td>
+                        <div class="fw-semibold small">{{ row.author_title | default('Pasien') }}</div>
+                        <small class="text-muted-custom">Rating: ⭐{{ row.review_rating_numeric }}</small>
+                    </td>
+                    <td class="text-muted-custom small">{{ row.review_text }}</td>
+                    <td>
+                        <div class="p-2 rounded font-monospace small table-result-box">
+                            {% if current_step == 'clean' %}
+                                {{ row.text_step5_no_punct | default(row.text_step1_lower) }}
+                            {% elif current_step == 'normal' %}
+                                <span class="text-primary fw-bold">{{ row.review_text_normalized | default(row.review_text_final) }}</span>
+                            {% elif current_step == 'stopword' %}
+                                {{ row.review_text_stopword_removed }}
+                            {% else %}
+                                {{ row.review_text_stemmed | default(row.review_text_final) }}
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center pt-3 gap-2">
+        <small class="text-muted-custom">Halaman {{ page }} dari {{ total_pages }}</small>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                {% if page > 1 %}
+                <li class="page-item"><a class="page-link" href="/pipeline?stage=1&step={{ current_step }}&page={{ page - 1 }}&rating={{ rating }}&sentimen={{ sentimen }}">Prev</a></li>
+                {% endif %}
+                <li class="page-item active"><a class="page-link">{{ page }}</a></li>
+                {% if page < total_pages %}
+                <li class="page-item"><a class="page-link" href="/pipeline?stage=1&step={{ current_step }}&page={{ page + 1 }}&rating={{ rating }}&sentimen={{ sentimen }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- ================= SUB-MENU 2: MODEL SVM ================= -->
+{% elif active_stage == '2' %}
+<div class="card dashboard-card p-4 mb-4">
+    <h5 class="fw-bold mb-3"><i class="bi bi-cpu me-2 text-primary"></i>Tahap 2: Hasil Klasifikasi Sentimen Support Vector Machine (SVM)</h5>
+    
+    <!-- Kartu Metrik Ringkas Responsive -->
+    <div class="row g-2 g-md-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="p-3 inner-stat-box rounded text-center">
+                <small class="text-muted-custom d-block mb-1">Akurasi (80:20)</small>
+                <h3 class="fw-bold text-success mb-0 fs-4 fs-sm-3">95.05%</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="p-3 inner-stat-box rounded text-center">
+                <small class="text-muted-custom d-block mb-1">Fitur Vocabulary</small>
+                <h3 class="fw-bold text-primary mb-0 fs-4 fs-sm-3">1.814</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="p-3 inner-stat-box rounded text-center">
+                <small class="text-muted-custom d-block mb-1">Sentimen Positif</small>
+                <h3 class="fw-bold text-success mb-0 fs-4 fs-sm-3">1.669</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="p-3 inner-stat-box rounded text-center">
+                <small class="text-muted-custom d-block mb-1">Sentimen Negatif</small>
+                <h3 class="fw-bold text-danger mb-0 fs-4 fs-sm-3">549</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visualisasi Grafik Interaktif -->
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-6">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <h6 class="fw-bold mb-2"><i class="bi bi-grid-2x2 me-2 text-primary"></i>Distribusi Confusion Matrix (Split 80:20)</h6>
+                <span class="text-muted-custom small d-block mb-3">Hasil klasifikasi 444 sampel data uji</span>
+                <div class="chart-container-mobile" style="position: relative; height: 220px;">
+                    <canvas id="chartConfusionMatrix"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <h6 class="fw-bold mb-2"><i class="bi bi-bar-chart-line me-2 text-success"></i>Perbandingan Akurasi Variasi Split Data</h6>
+                <span class="text-muted-custom small d-block mb-3">Pengujian kestabilan model pada rasio data latih : data uji</span>
+                <div class="chart-container-mobile" style="position: relative; height: 220px;">
+                    <canvas id="chartSplitAccuracy"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= SUB-MENU 3: TOPIC MODELING LDA ================= -->
+{% elif active_stage == '3' %}
+<div class="card dashboard-card p-4 mb-4">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 gap-2">
+        <div>
+            <h5 class="fw-bold mb-1"><i class="bi bi-diagram-2 me-2 text-primary"></i>Tahap 3: Hasil Pemodelan Topik Latent Dirichlet Allocation (LDA)</h5>
+            <p class="text-muted-custom small mb-0">Ekstraksi 9 Topik Utama (4 Topik Sentimen Positif & 5 Topik Sentimen Negatif) dari ulasan pasien.</p>
+        </div>
+        <span class="badge bg-success px-3 py-2 rounded-pill small">Optimal Coherence Score: 0.58</span>
+    </div>
+
+    <!-- Kartu Ringkasan Topik Positif & Negatif -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <div class="border rounded p-3 inner-stat-box h-100">
+                <h6 class="fw-bold text-success mb-3"><i class="bi bi-hand-thumbs-up me-2"></i>Topik Sentimen Positif (4 Topik)</h6>
+                <ul class="mb-0 small list-unstyled">
+                    <li class="mb-2"><span class="badge bg-success me-2">Topik 1</span> <strong>Pelayanan Dokter & Perawat:</strong> <em>ramah, baik, penjelas</em></li>
+                    <li class="mb-2"><span class="badge bg-success me-2">Topik 2</span> <strong>Fasilitas & Kenyamanan:</strong> <em>bersih, nyaman, ruang, bagus</em></li>
+                    <li class="mb-2"><span class="badge bg-success me-2">Topik 3</span> <strong>Kepuasan Layanan Umum:</strong> <em>puas, layanan, bantu, tanggap</em></li>
+                    <li class="mb-0"><span class="badge bg-success me-2">Topik 4</span> <strong>Penanganan Cepat:</strong> <em>cepat, tindak, penangan, cekatan</em></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="border rounded p-3 inner-stat-box h-100">
+                <h6 class="fw-bold text-danger mb-3"><i class="bi bi-hand-thumbs-down me-2"></i>Topik Sentimen Negatif (5 Topik)</h6>
+                <ul class="mb-0 small list-unstyled">
+                    <li class="mb-2"><span class="badge bg-danger me-2">Topik 5</span> <strong>Antrean & Pendaftaran:</strong> <em>antre, lama, daftar, loket</em></li>
+                    <li class="mb-2"><span class="badge bg-danger me-2">Topik 6</span> <strong>Jam Operasional & Jadwal:</strong> <em>jam, jadwal, lambat, molor</em></li>
+                    <li class="mb-2"><span class="badge bg-danger me-2">Topik 7</span> <strong>Pengambilan Obat Farmasi:</strong> <em>obat, antre, farmasi, racik</em></li>
+                    <li class="mb-2"><span class="badge bg-danger me-2">Topik 8</span> <strong>Layanan BPJS & Admin:</strong> <em>bpjs, berkas, rujuk, syarat</em></li>
+                    <li class="mb-0"><span class="badge bg-danger me-2">Topik 9</span> <strong>Komunikasi Petugas:</strong> <em>petugas, jutek, jelas, abaikan</em></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grafik Visualisasi LDA -->
+    <div class="row g-3">
+        <div class="col-12 col-md-5">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <h6 class="fw-bold mb-2"><i class="bi bi-graph-up me-2 text-primary"></i>Evaluasi Coherence Score ($k=2 \dots 9$)</h6>
+                <span class="text-muted-custom small d-block mb-3">Nilai koherensi puncak dicapai pada 9 jumlah topik</span>
+                <div class="chart-container-mobile" style="position: relative; height: 220px;">
+                    <canvas id="chartLdaCoherence"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-7">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <h6 class="fw-bold mb-2"><i class="bi bi-bar-chart-steps me-2 text-primary"></i>Distribusi Bobot Dominasi Topik (%)</h6>
+                <span class="text-muted-custom small d-block mb-3">Persentase kontribusi masing-masing topik dalam model LDA</span>
+                <div class="chart-container-mobile" style="position: relative; height: 220px;">
+                    <canvas id="chartLdaTopicsBar"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= SUB-MENU 4: PEMETAAN PIECES ================= -->
+{% elif active_stage == '4' %}
+<div class="card dashboard-card p-4 mb-4">
+    <h5 class="fw-bold mb-3"><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Tahap 4: Pemetaan Topik ke 6 Dimensi Framework PIECES</h5>
+    <p class="text-muted-custom small mb-4">Pengelompokan 9 hasil pemodelan topik LDA ke dalam 6 dimensi mutu evaluasi sistem layanan kesehatan (PIECES Framework):</p>
+    
+    <!-- 6 Kartu Dimensi PIECES Responsive -->
+    <div class="row g-2 g-md-3 mb-4">
+        <div class="col-6 col-md-4">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <h6 class="fw-bold text-secondary mb-1">Performance</h6>
+                <small class="text-muted-custom d-block mb-2">Kemampuan menyelesaikan tugas</small>
+                <span class="badge bg-secondary">0 Topik</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <h6 class="fw-bold text-secondary mb-1">Information</h6>
+                <small class="text-muted-custom d-block mb-2">Kualitas & kejelasan informasi</small>
+                <span class="badge bg-secondary">0 Topik</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <h6 class="fw-bold text-secondary mb-1">Economics</h6>
+                <small class="text-muted-custom d-block mb-2">Kaitan biaya dan manfaat</small>
+                <span class="badge bg-secondary">0 Topik</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <h6 class="fw-bold text-secondary mb-1">Control</h6>
+                <small class="text-muted-custom d-block mb-2">Pengendalian & keamanan</small>
+                <span class="badge bg-secondary">0 Topik</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="p-3 bg-warning-subtle rounded border border-warning h-100">
+                <h6 class="fw-bold text-dark mb-1">Efficiency</h6>
+                <small class="text-muted-custom d-block mb-2">Penggunaan waktu & antrean</small>
+                <span class="badge bg-warning text-dark">4 Topik Negatif</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="p-3 bg-success-subtle rounded border border-success h-100">
+                <h6 class="fw-bold text-success mb-1">Service</h6>
+                <small class="text-muted-custom d-block mb-2">Kualitas pelayanan & staf</small>
+                <span class="badge bg-success">5 Topik (4+, 1-)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visualisasi Grafik Interaktif PIECES -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-5">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <h6 class="fw-bold mb-2"><i class="bi bi-pie-chart me-2 text-primary"></i>Proporsi Cakupan Topik per Dimensi</h6>
+                <span class="text-muted-custom small d-block mb-3">Persentase distribusi 9 topik ke dalam dimensi PIECES</span>
+                <div class="chart-container-mobile" style="position: relative; height: 220px;">
+                    <canvas id="chartPiecesDistribution"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-7">
+            <div class="p-3 inner-stat-box rounded h-100">
+                <h6 class="fw-bold mb-2"><i class="bi bi-bar-chart-line me-2 text-primary"></i>Komposisi Sentimen (Positif vs Negatif) per Dimensi</h6>
+                <span class="text-muted-custom small d-block mb-3">Jumlah topik positif dan negatif pada tiap dimensi PIECES</span>
+                <div class="chart-container-mobile" style="position: relative; height: 220px;">
+                    <canvas id="chartPiecesSentimentBar"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Rincian Topik dalam Dimensi Terpetakan -->
+    <div class="row g-3">
+        <div class="col-12 col-md-6">
+            <div class="card border-warning shadow-none bg-warning-subtle p-3 h-100">
+                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-clock-history me-2 text-warning"></i>Rincian Dimensi: Efficiency (4 Topik Negatif)</h6>
+                <p class="small text-muted-custom mb-3">Fokus permasalahan utama pasien pada efisiensi waktu dan kelancaran proses antrean layanan:</p>
+                <ul class="mb-0 small list-group list-group-flush rounded">
+                    <li class="list-group-item bg-transparent"><strong>Topik 5:</strong> Antrean & Pendaftaran (<em>antre, lama, loket</em>)</li>
+                    <li class="list-group-item bg-transparent"><strong>Topik 6:</strong> Jam Operasional & Jadwal Dokter (<em>jam, lambat, molor</em>)</li>
+                    <li class="list-group-item bg-transparent"><strong>Topik 7:</strong> Pengambilan Obat Farmasi (<em>obat, racik, lama</em>)</li>
+                    <li class="list-group-item bg-transparent"><strong>Topik 8:</strong> Layanan BPJS & Administrasi (<em>bpjs, berkas, rujuk</em>)</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="card border-success shadow-none bg-success-subtle p-3 h-100">
+                <h6 class="fw-bold text-success mb-2"><i class="bi bi-heart-pulse me-2 text-success"></i>Rincian Dimensi: Service (5 Topik)</h6>
+                <p class="small text-muted-custom mb-3">Fokus evaluasi pada kualitas interaksi staf medis, kebersihan, dan komunikasi petugas:</p>
+                <ul class="mb-0 small list-group list-group-flush rounded">
+                    <li class="list-group-item bg-transparent text-success"><strong>Topik 1 (Positif):</strong> Pelayanan Dokter & Perawat (<em>ramah, baik, penjelas</em>)</li>
+                    <li class="list-group-item bg-transparent text-success"><strong>Topik 2 (Positif):</strong> Fasilitas & Kenyamanan Ruangan (<em>bersih, nyaman, bagus</em>)</li>
+                    <li class="list-group-item bg-transparent text-success"><strong>Topik 3 (Positif):</strong> Kepuasan Layanan Umum (<em>puas, tanggap, bantu</em>)</li>
+                    <li class="list-group-item bg-transparent text-success"><strong>Topik 4 (Positif):</strong> Penanganan Cepat & Cekatan (<em>cepat, tindak, cekatan</em>)</li>
+                    <li class="list-group-item bg-transparent text-danger"><strong>Topik 9 (Negatif):</strong> Komunikasi & Sikap Petugas (<em>petugas, jutek, abaikan</em>)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        const activeStage = "{{ active_stage | default('1') }}";
+        const isDark = $('html').attr('data-bs-theme') === 'dark';
+        const textColor = isDark ? '#cbd5e1' : '#475569';
+        const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+
+        // ================= STAGE 2: SVM CHARTS =================
+        if (activeStage === "2") {
+            new Chart(document.getElementById('chartConfusionMatrix'), {
+                type: 'bar',
+                data: {
+                    labels: ['True Neg (TN)', 'False Pos (FP)', 'False Neg (FN)', 'True Pos (TP)'],
+                    datasets: [{
+                        label: 'Jumlah Sampel',
+                        data: [100, 10, 12, 322],
+                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#3b82f6'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
+                        y: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: true }
+                    }
+                }
+            });
+
+            new Chart(document.getElementById('chartSplitAccuracy'), {
+                type: 'bar',
+                data: {
+                    labels: ['Split 80:20', 'Split 70:30', 'Split 60:40'],
+                    datasets: [{
+                        label: 'Akurasi (%)',
+                        data: [95.05, 93.80, 92.15],
+                        backgroundColor: '#6366f1',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
+                        y: { ticks: { color: textColor }, grid: { color: gridColor }, min: 85, max: 100 }
+                    }
+                }
+            });
+        }
+
+        // ================= STAGE 3: LDA CHARTS =================
+        if (activeStage === "3") {
+            new Chart(document.getElementById('chartLdaCoherence'), {
+                type: 'line',
+                data: {
+                    labels: ['k=2', 'k=3', 'k=4', 'k=5', 'k=6', 'k=7', 'k=8', 'k=9'],
+                    datasets: [{
+                        label: 'Coherence Score',
+                        data: [0.42, 0.48, 0.51, 0.55, 0.53, 0.52, 0.50, 0.58],
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
+                        y: { ticks: { color: textColor }, grid: { color: gridColor }, min: 0.3, max: 0.65 }
+                    }
+                }
+            });
+
+            new Chart(document.getElementById('chartLdaTopicsBar'), {
+                type: 'bar',
+                data: {
+                    labels: [
+                        'Topik 1: Dokter & Perawat',
+                        'Topik 2: Fasilitas & Ruang',
+                        'Topik 3: Kepuasan Layanan',
+                        'Topik 4: Penanganan Cepat',
+                        'Topik 5: Antrean & Loket',
+                        'Topik 6: Jam Operasional',
+                        'Topik 7: Obat & Farmasi',
+                        'Topik 8: Layanan BPJS',
+                        'Topik 9: Sikap Petugas'
+                    ],
+                    datasets: [{
+                        label: 'Bobot Topik (%)',
+                        data: [22, 18, 15, 12, 11, 8, 6, 5, 3],
+                        backgroundColor: [
+                            '#10b981', '#10b981', '#10b981', '#10b981',
+                            '#ef4444', '#ef4444', '#ef4444', '#ef4444', '#ef4444'
+                        ],
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: true },
+                        y: { ticks: { color: textColor, font: { size: 9 } }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // ================= STAGE 4: PIECES CHARTS =================
+        if (activeStage === "4") {
+            new Chart(document.getElementById('chartPiecesDistribution'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Service (5 Topik)', 'Efficiency (4 Topik)', 'Lainnya (0)'],
+                    datasets: [{
+                        data: [5, 4, 0],
+                        backgroundColor: ['#10b981', '#f59e0b', '#cbd5e1'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 10, padding: 10 } } }
+                }
+            });
+
+            new Chart(document.getElementById('chartPiecesSentimentBar'), {
+                type: 'bar',
+                data: {
+                    labels: ['Perf.', 'Info.', 'Econ.', 'Control', 'Effic.', 'Service'],
+                    datasets: [
+                        {
+                            label: 'Topik Positif',
+                            data: [0, 0, 0, 0, 0, 4],
+                            backgroundColor: '#10b981',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Topik Negatif',
+                            data: [0, 0, 0, 0, 4, 1],
+                            backgroundColor: '#ef4444',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 10, padding: 8 } } },
+                    scales: {
+                        x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
+                        y: { ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

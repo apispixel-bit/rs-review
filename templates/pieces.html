@@ -1,0 +1,456 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Variabel & Styling Adaptif Seragam */
+    [data-bs-theme="light"] {
+        --dash-bg-card: #ffffff;
+        --dash-border-card: rgba(0, 0, 0, 0.08);
+        --dash-text-main: #1e293b;
+        --dash-text-muted: #64748b;
+        --dash-bg-inner: #f8fafc;
+        --dash-chart-grid: rgba(0, 0, 0, 0.06);
+    }
+
+    [data-bs-theme="dark"] {
+        --dash-bg-card: #181824;
+        --dash-border-card: rgba(255, 255, 255, 0.08);
+        --dash-text-main: #f8fafc;
+        --dash-text-muted: #94a3b8;
+        --dash-bg-inner: #11111c;
+        --dash-chart-grid: rgba(255, 255, 255, 0.08);
+    }
+
+    .hero-banner {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        border-radius: 14px;
+        padding: 24px;
+        color: #ffffff !important;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .dashboard-card {
+        background-color: var(--dash-bg-card) !important;
+        border: 1px solid var(--dash-border-card) !important;
+        border-radius: 14px;
+        color: var(--dash-text-main) !important;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .text-muted-custom {
+        color: var(--dash-text-muted) !important;
+    }
+
+    .inner-stat-box {
+        background-color: var(--dash-bg-inner) !important;
+        border: 1px solid var(--dash-border-card) !important;
+    }
+
+    /* Styling Accordion Mode Gelap & Terang */
+    .accordion-dark .accordion-item {
+        background-color: var(--dash-bg-inner) !important;
+        border: 1px solid var(--dash-border-card) !important;
+        color: var(--dash-text-main) !important;
+    }
+
+    .accordion-dark .accordion-button {
+        background-color: var(--dash-bg-card) !important;
+        color: var(--dash-text-main) !important;
+        box-shadow: none;
+    }
+
+    .accordion-dark .accordion-button:not(.collapsed) {
+        background-color: var(--dash-bg-inner) !important;
+        color: #6366f1 !important;
+    }
+
+    @media (max-width: 767.98px) {
+        .hero-banner {
+            padding: 18px 16px;
+        }
+        .hero-banner h4 {
+            font-size: 1.2rem;
+        }
+        .dashboard-card {
+            padding: 1.25rem !important;
+        }
+        .chart-container-mobile {
+            height: 200px !important;
+        }
+        .chart-container-words-mobile {
+            height: 150px !important;
+        }
+    }
+</style>
+
+<!-- Header Utama -->
+<div class="hero-banner mb-3 mb-md-4">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+        <div>
+            <h3 class="fw-bold mb-1 text-white">Eksplorasi Topik Ulasan Rumah Sakit (LDA Modeling)</h3>
+            <p class="mb-0 text-white-50 small">Ekstraksi Kluster Topik Sentimen Pasien Menggunakan Latent Dirichlet Allocation (LDA)</p>
+        </div>
+        <span class="badge bg-white text-primary px-3 py-2 rounded-pill small fw-semibold self-start">
+            Optimal Coherence Score: 0.58
+        </span>
+    </div>
+</div>
+
+<!-- Modul Penjelasan Metodologi LDA Penelitian -->
+<div class="card dashboard-card p-4 mb-4">
+    <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2 text-primary"></i>Panduan Komponen Eksplorasi Topik</h6>
+    <ul class="list-unstyled mb-0 small text-muted-custom">
+        <li class="mb-2">
+            <strong class="text-primary"><i class="bi bi-dot"></i> Positive & Negative Topic Highlights:</strong>
+            Ringkasan 9 topik utama yang terekstraksi dari dataset ulasan pasien (4 topik sentimen positif dan 5 topik sentimen negatif) beserta rekomendasi peningkatan mutu layanan rumah sakit.
+        </li>
+        <li class="mb-2">
+            <strong class="text-primary"><i class="bi bi-dot"></i> Coherence Score Evaluation:</strong>
+            Grafik evaluasi nilai koherensi ($C_v$) untuk menentukan jumlah topik optimal ($k$) pada masing-masing kelompok sentimen.
+        </li>
+        <li class="mb-2">
+            <strong class="text-primary"><i class="bi bi-dot"></i> Words Topic Frequency:</strong>
+            Distribusi kata-kata kunci berbobot tertinggi yang membentuk setiap kluster topik ulasan pasien.
+        </li>
+        <li class="mb-0">
+            <strong class="text-primary"><i class="bi bi-dot"></i> Intertopic Distance Map:</strong>
+            Peta sebaran multidimensi ($PC1$ & $PC2$) yang menggambarkan tingkat kemiripan dan keterpisahan antar kluster topik.
+        </li>
+    </ul>
+</div>
+
+<!-- Row 1: Positive vs Negative Topic Highlights (Accordion) -->
+<div class="row g-3 g-md-4 mb-4 align-items-stretch">
+    <!-- Positive Topic Highlights (4 Topik) -->
+    <div class="col-12 col-md-6">
+        <div class="card dashboard-card p-3 p-md-4 h-100">
+            <h6 class="fw-bold text-success mb-3"><i class="bi bi-hand-thumbs-up me-2"></i>Positive Topic Highlights (4 Topik)</h6>
+            
+            <div class="accordion accordion-dark" id="accordionPosTopics">
+                <!-- Topik 1 Positif -->
+                <div class="accordion-item mb-2 rounded overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button py-2 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePos1">
+                            Topik 1: Pelayanan Dokter & Perawat
+                        </button>
+                    </h2>
+                    <div id="collapsePos1" class="accordion-collapse collapse show" data-bs-parent="#accordionPosTopics">
+                        <div class="accordion-body small text-muted-custom">
+                            <p class="mb-2"><strong>Kata Kunci:</strong> <em>dokter, perawat, ramah, baik, penjelas, sabar</em></p>
+                            <p class="mb-2"><strong>Insight:</strong> Pasien sangat mengapresiasi kejelasan penjelasan dokter mengenai diagnosa penyakit dan kesabaran perawat saat merawat.</p>
+                            <p class="mb-0"><strong>Rekomendasi Mutu:</strong> Pertahankan standar komunikasi empatik seluruh nakes di unit rawat inap dan jalan.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Topik 2 Positif -->
+                <div class="accordion-item mb-2 rounded overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePos2">
+                            Topik 2: Fasilitas & Kenyamanan Ruangan
+                        </button>
+                    </h2>
+                    <div id="collapsePos2" class="accordion-collapse collapse" data-bs-parent="#accordionPosTopics">
+                        <div class="accordion-body small text-muted-custom">
+                            <p class="mb-2"><strong>Kata Kunci:</strong> <em>bersih, nyaman, ruang, bagus, fasilitas, kamar</em></p>
+                            <p class="mb-2"><strong>Insight:</strong> Kebersihan area tunggu, fasilitas AC yang memadai, dan kerapian ruang perawatan membuat pasien merasa nyaman.</p>
+                            <p class="mb-0"><strong>Rekomendasi Mutu:</strong> Lakukan perawatan berkala pada sarana fisik dan fasilitas umum RS.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Topik 3 Positif -->
+                <div class="accordion-item mb-2 rounded overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePos3">
+                            Topik 3: Kepuasan Layanan Umum
+                        </button>
+                    </h2>
+                    <div id="collapsePos3" class="accordion-collapse collapse" data-bs-parent="#accordionPosTopics">
+                        <div class="accordion-body small text-muted-custom">
+                            <p class="mb-2"><strong>Kata Kunci:</strong> <em>puas, layanan, bantu, tanggap, staf, satpam</em></p>
+                            <p class="mb-2"><strong>Insight:</strong> Staf administrasi dan petugas keamanan dinilai sigap serta membantu memberikan informasi alur pendaftaran.</p>
+                            <p class="mb-0"><strong>Rekomendasi Mutu:</strong> Berikan penafsiran positif dan apresiasi bagi unit kerja dengan rating kepuasan tertinggi.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Topik 4 Positif -->
+                <div class="accordion-item rounded overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePos4">
+                            Topik 4: Penanganan Cepat & Cekatan
+                        </button>
+                    </h2>
+                    <div id="collapsePos4" class="accordion-collapse collapse" data-bs-parent="#accordionPosTopics">
+                        <div class="accordion-body small text-muted-custom">
+                            <p class="mb-2"><strong>Kata Kunci:</strong> <em>cepat, tindak, penangan, cekatan, respon, igd</em></p>
+                            <p class="mb-2"><strong>Insight:</strong> Penanganan kondisi gawat darurat di IGD dinilai cepat dan tindakan medis langsung diberikan tanpa penundaan.</p>
+                            <p class="mb-0"><strong>Rekomendasi Mutu:</strong> Pertahankan standar alur triase gawat darurat agar tetap responsif.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Negative Topic Highlights (5 Topik) -->
+    <div class="col-12 col-md-6">
+        <div class="card dashboard-card p-3 p-md-4 h-100">
+            <h6 class="fw-bold text-danger mb-3"><i class="bi bi-hand-thumbs-down me-2"></i>Negative Topic Highlights (5 Topik)</h6>
+            
+            <div class="accordion accordion-dark" id="accordionNegTopics">
+                <!-- Topik 5 Negatif -->
+                <div class="accordion-item mb-2 rounded overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button py-2 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNeg1">
+                            Topik 5: Antrean Loket Pendaftaran
+                        </button>
+                    </h2>
+                    <div id="collapseNeg1" class="accordion-collapse collapse show" data-bs-parent="#accordionNegTopics">
+                        <div class="accordion-body small text-muted-custom">
+                            <p class="mb-2"><strong>Kata Kunci:</strong> <em>antre, lama, daftar, loket, panjang, penumpukan</em></p>
+                            <p class="mb-2"><strong>Insight:</strong> Penumpukan antrean panjang terjadi di jam sibuk pagi hari akibat keterbatasan loket fisik yang dibuka.</p>
+                            <p class="mb-0"><strong>Rekomendasi Mutu:</strong> Buka loket pendaftaran tambahan dan optimalkan aplikasi pendaftaran online.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Topik 6 Negatif -->
+                <div class="accordion-item mb-2 rounded overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNeg2">
+                            Topik 6: Jam Operasional & Dokter Molor
+                        </button>
+                    </h2>
+                    <div id="collapseNeg2" class="accordion-collapse collapse" data-bs-parent="#accordionNegTopics">
+                        <div class="accordion-body small text-muted-custom">
+                            <p class="mb-2"><strong>Kata Kunci:</strong> <em>jam, jadwal, lambat, molor, tunggu, dokter</em></p>
+                            <p class="mb-2"><strong>Insight:</strong> Jam kehadiran dokter spesialis sering mengalami keterlambatan dari jadwal terpublikasi.</p>
+                            <p class="mb-0"><strong>Rekomendasi Mutu:</strong> Implementasikan notifikasi WhatsApp otomatis jika ada penyesuaian jadwal dokter.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Topik 7 Negatif -->
+                <div class="accordion-item mb-2 rounded overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNeg3">
+                            Topik 7: Waktu Tunggu Pengambilan Obat Farmasi
+                        </button>
+                    </h2>
+                    <div id="collapseNeg3" class="accordion-collapse collapse" data-bs-parent="#accordionNegTopics">
+                        <div class="accordion-body small text-muted-custom">
+                            <p class="mb-2"><strong>Kata Kunci:</strong> <em>obat, racik, farmasi, antre, tunggu, lama</em></p>
+                            <p class="mb-2"><strong>Insight:</strong> Proses penyiapan obat racikan di depo apotek memerlukan waktu tunggu yang cukup lama.</p>
+                            <p class="mb-0"><strong>Rekomendasi Mutu:</strong> Evaluasi alur racik farmasi dan integrasikan sistem panggilan antrean apotek digital.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Topik 8 Negatif -->
+                <div class="accordion-item mb-2 rounded overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNeg4">
+                            Topik 8: Layanan BPJS & Verifikasi Administrasi
+                        </button>
+                    </h2>
+                    <div id="collapseNeg4" class="accordion-collapse collapse" data-bs-parent="#accordionNegTopics">
+                        <div class="accordion-body small text-muted-custom">
+                            <p class="mb-2"><strong>Kata Kunci:</strong> <em>bpjs, berkas, rujuk, syarat, alur, rumit</em></p>
+                            <p class="mb-2"><strong>Insight:</strong> Keluhan berfokus pada alur verifikasi dokumen kepesertaan BPJS yang dirasa panjang.</p>
+                            <p class="mb-0"><strong>Rekomendasi Mutu:</strong> Sediakan *desk* bantuan khusus untuk edukasi dan alur syarat rujukan BPJS.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Topik 9 Negatif -->
+                <div class="accordion-item rounded overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNeg5">
+                            Topik 9: Sikap & Komunikasi Petugas
+                        </button>
+                    </h2>
+                    <div id="collapseNeg5" class="accordion-collapse collapse" data-bs-parent="#accordionNegTopics">
+                        <div class="accordion-body small text-muted-custom">
+                            <p class="mb-2"><strong>Kata Kunci:</strong> <em>petugas, jutek, kurang, jelas, abaikan, respon</em></p>
+                            <p class="mb-2"><strong>Insight:</strong> Adanya persepsi kurang ramah dan komunikasi kurang mendalam dari sebagian petugas frontline.</p>
+                            <p class="mb-0"><strong>Rekomendasi Mutu:</strong> Adakan pelatihan *Hospitality & Effective Communication* berkala.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 2: Charts Evaluasi Coherence Score -->
+<div class="row g-3 g-md-4 mb-4">
+    <div class="col-12 col-md-6">
+        <div class="card dashboard-card p-4 h-100">
+            <h6 class="fw-bold text-success mb-1"><i class="bi bi-graph-up me-2"></i>Evaluasi Coherence Score - Sentimen Positif</h6>
+            <span class="text-muted-custom small mb-3 d-block">Nilai koherensi puncak dicapai pada K=4 (Score: 0.56)</span>
+            <div class="chart-container-mobile" style="position: relative; height: 220px;">
+                <canvas id="chartCoherencePos"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="card dashboard-card p-4 h-100">
+            <h6 class="fw-bold text-danger mb-1"><i class="bi bi-graph-up me-2"></i>Evaluasi Coherence Score - Sentimen Negatif</h6>
+            <span class="text-muted-custom small mb-3 d-block">Nilai koherensi puncak dicapai pada K=5 (Score: 0.58)</span>
+            <div class="chart-container-mobile" style="position: relative; height: 220px;">
+                <canvas id="chartCoherenceNeg"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 3: Positive & Negative Words Topic (Bar Charts) -->
+<div class="row g-3 g-md-4 mb-4">
+    <!-- Words Topic Positif -->
+    <div class="col-12 col-md-6">
+        <div class="card dashboard-card p-4 h-100">
+            <h6 class="fw-bold text-success mb-3"><i class="bi bi-fonts me-2"></i>Kata Kunci Dominan - Topik Positif</h6>
+            
+            <div class="mb-4">
+                <small class="fw-semibold text-muted-custom mb-2 d-block">Topik 1: Pelayanan Dokter & Perawat</small>
+                <div class="chart-container-words-mobile" style="position: relative; height: 150px;">
+                    <canvas id="chartPosWord1"></canvas>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <small class="fw-semibold text-muted-custom mb-2 d-block">Topik 2: Fasilitas & Kenyamanan Ruangan</small>
+                <div class="chart-container-words-mobile" style="position: relative; height: 150px;">
+                    <canvas id="chartPosWord2"></canvas>
+                </div>
+            </div>
+
+            <div>
+                <small class="fw-semibold text-muted-custom mb-2 d-block">Topik 3: Kepuasan Layanan Umum</small>
+                <div class="chart-container-words-mobile" style="position: relative; height: 150px;">
+                    <canvas id="chartPosWord3"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Words Topic Negatif -->
+    <div class="col-12 col-md-6">
+        <div class="card dashboard-card p-4 h-100">
+            <h6 class="fw-bold text-danger mb-3"><i class="bi bi-fonts me-2"></i>Kata Kunci Dominan - Topik Negatif</h6>
+            
+            <div class="mb-4">
+                <small class="fw-semibold text-muted-custom mb-2 d-block">Topik 5: Antrean Loket Pendaftaran</small>
+                <div class="chart-container-words-mobile" style="position: relative; height: 150px;">
+                    <canvas id="chartNegWord1"></canvas>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <small class="fw-semibold text-muted-custom mb-2 d-block">Topik 6: Jam Operasional & Dokter</small>
+                <div class="chart-container-words-mobile" style="position: relative; height: 150px;">
+                    <canvas id="chartNegWord2"></canvas>
+                </div>
+            </div>
+
+            <div>
+                <small class="fw-semibold text-muted-custom mb-2 d-block">Topik 7: Pengambilan Obat Farmasi</small>
+                <div class="chart-container-words-mobile" style="position: relative; height: 150px;">
+                    <canvas id="chartNegWord3"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        const isDark = $('html').attr('data-bs-theme') === 'dark';
+        const textColor = isDark ? '#cbd5e1' : '#475569';
+        const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+
+        // 1. Chart Coherence Positif
+        new Chart(document.getElementById('chartCoherencePos'), {
+            type: 'line',
+            data: {
+                labels: ['k=2', 'k=3', 'k=4', 'k=5', 'k=6', 'k=7', 'k=8'],
+                datasets: [{
+                    label: 'Coherence Score',
+                    data: [0.44, 0.49, 0.56, 0.53, 0.50, 0.48, 0.47],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
+                    y: { ticks: { color: textColor }, grid: { color: gridColor }, min: 0.4, max: 0.6 }
+                }
+            }
+        });
+
+        // 2. Chart Coherence Negatif
+        new Chart(document.getElementById('chartCoherenceNeg'), {
+            type: 'line',
+            data: {
+                labels: ['k=2', 'k=3', 'k=4', 'k=5', 'k=6', 'k=7', 'k=8'],
+                datasets: [{
+                    label: 'Coherence Score',
+                    data: [0.38, 0.43, 0.48, 0.58, 0.52, 0.49, 0.46],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
+                    y: { ticks: { color: textColor }, grid: { color: gridColor }, min: 0.3, max: 0.65 }
+                }
+            }
+        });
+
+        // 3. Helper Horizontal Bar Chart Words Topik
+        const createHorizontalBar = (elementId, labels, data, color) => {
+            new Chart(document.getElementById(elementId), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: color,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: true },
+                        y: { ticks: { color: textColor, font: { size: 9 } }, grid: { display: false } }
+                    }
+                }
+            });
+        };
+
+        // Render Bar Words Topik
+        createHorizontalBar('chartPosWord1', ['dokter', 'perawat', 'ramah', 'baik', 'penjelas', 'sabar'], [0.038, 0.028, 0.021, 0.018, 0.016, 0.014], '#10b981');
+        createHorizontalBar('chartPosWord2', ['bersih', 'nyaman', 'ruang', 'bagus', 'fasilitas', 'kamar'], [0.045, 0.032, 0.025, 0.021, 0.018, 0.015], '#10b981');
+        createHorizontalBar('chartPosWord3', ['puas', 'layanan', 'bantu', 'tanggap', 'staf', 'satpam'], [0.042, 0.029, 0.022, 0.019, 0.016, 0.013], '#10b981');
+
+        createHorizontalBar('chartNegWord1', ['antre', 'lama', 'daftar', 'loket', 'panjang', 'tunggu'], [0.035, 0.030, 0.026, 0.021, 0.017, 0.014], '#ef4444');
+        createHorizontalBar('chartNegWord2', ['jam', 'jadwal', 'lambat', 'molor', 'tunggu', 'dokter'], [0.028, 0.022, 0.018, 0.015, 0.012, 0.009], '#ef4444');
+        createHorizontalBar('chartNegWord3', ['obat', 'racik', 'farmasi', 'antre', 'tunggu', 'lama'], [0.024, 0.019, 0.016, 0.014, 0.011, 0.008], '#ef4444');
+    });
+</script>
+{% endblock %}
