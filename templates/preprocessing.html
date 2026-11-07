@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Styling khusus untuk tabel Preprocessing */
+    #table-preprocessing thead th {
+        background-color: var(--bs-border-color-translucent);
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 10px;
+        vertical-align: middle;
+    }
+
+    .step-badge {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-right: 4px;
+    }
+
+    /* Box scroll untuk teks Desktop */
+    .text-box-scroll {
+        max-height: 90px;
+        overflow-y: auto;
+        font-size: 0.83rem;
+        line-height: 1.4;
+        padding-right: 4px;
+    }
+
+    .text-box-scroll::-webkit-scrollbar {
+        width: 4px;
+    }
+    .text-box-scroll::-webkit-scrollbar-thumb {
+        background: rgba(100, 100, 100, 0.3);
+        border-radius: 4px;
+    }
+
+    /* Highlight tipis untuk hasil akhir */
+    .col-highlight {
+        background-color: rgba(13, 110, 253, 0.04) !important;
+    }
+
+    /* --- RESPONSIVE MOBILE TWEAKS --- */
+    @media (max-width: 767.98px) {
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter {
+            float: none !important;
+            text-align: left !important;
+            margin-bottom: 10px;
+        }
+        .dataTables_wrapper .dataTables_filter input {
+            width: 100% !important;
+            margin-left: 0 !important;
+        }
+        
+        /* Ubah tampilan tabel menjadi Card View di Mobile */
+        .mobile-card-view table, 
+        .mobile-card-view thead, 
+        .mobile-card-view tbody, 
+        .mobile-card-view th, 
+        .mobile-card-view td, 
+        .mobile-card-view tr { 
+            display: block; 
+        }
+
+        .mobile-card-view thead tr { 
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+        }
+
+        .mobile-card-view tbody tr {
+            border: 1px solid var(--bs-border-color);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: var(--bs-body-bg);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.04);
+        }
+
+        .mobile-card-view td { 
+            border: none !important;
+            position: relative;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            padding-top: 6px !important;
+            padding-bottom: 6px !important;
+        }
+
+        .mobile-card-view td::before { 
+            content: attr(data-label);
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            display: block;
+            color: var(--bs-primary);
+            margin-bottom: 2px;
+        }
+
+        .text-box-scroll {
+            max-height: none;
+            overflow-y: visible;
+        }
+    }
+</style>
+
+<!-- Header Halaman Langsung -->
+<div class="mb-4">
+    <h3 class="fw-bold mb-1"><i class="fa-solid fa-list-check text-primary me-2"></i>Tahapan Text Preprocessing</h3>
+    <p class="text-muted small mb-0">Transformasi data ulasan dari teks mentah hingga kata dasar (stemmed) dengan Server-Side Pagination.</p>
+</div>
+
+<!-- Container Tabel dengan Kelas Responsif -->
+<div class="table-responsive mobile-card-view">
+    <table class="table table-hover table-bordered align-middle mb-0" id="table-preprocessing" style="width:100%">
+        <thead>
+            <tr>
+                <th style="width: 4%;" class="text-center">No</th>
+                <th style="width: 20%;">Ulasan Mentah (Raw)</th>
+                <th style="width: 14%;"><span class="badge bg-secondary step-badge">1</span> Case Folding</th>
+                <th style="width: 14%;"><span class="badge bg-secondary step-badge">2</span> Cleaning</th>
+                <th style="width: 14%;"><span class="badge bg-secondary step-badge">3</span> Normalization</th>
+                <th style="width: 14%;"><span class="badge bg-secondary step-badge">4</span> Stopword</th>
+                <th style="width: 15%;" class="col-highlight"><span class="badge bg-primary step-badge">5</span> Stemming</th>
+                <th style="width: 5%;" class="text-center col-highlight">Sentimen</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data dimuat via AJAX -->
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#table-preprocessing').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "/api/preprocessing",
+                "type": "GET"
+            },
+            "columns": [
+                { 
+                    "data": null,
+                    "className": "text-center fw-bold opacity-75",
+                    "render": function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                { 
+                    "data": "raw_text", 
+                    "render": function(data) { 
+                        return `<div class="text-box-scroll fw-semibold">${data || '-'}</div>`; 
+                    } 
+                },
+                { 
+                    "data": "step1_lower", 
+                    "render": function(data) { 
+                        return `<div class="text-box-scroll opacity-75">${data || '-'}</div>`; 
+                    } 
+                },
+                { 
+                    "data": "step2_clean", 
+                    "render": function(data) { 
+                        return `<div class="text-box-scroll opacity-75">${data || '-'}</div>`; 
+                    } 
+                },
+                { 
+                    "data": "step3_normalized", 
+                    "render": function(data) { 
+                        return `<div class="text-box-scroll opacity-75">${data || '-'}</div>`; 
+                    } 
+                },
+                { 
+                    "data": "step4_stopword", 
+                    "render": function(data) { 
+                        return `<div class="text-box-scroll opacity-75">${data || '-'}</div>`; 
+                    } 
+                },
+                { 
+                    "data": "step5_stemmed", 
+                    "className": "col-highlight",
+                    "render": function(data) { 
+                        return `<div class="text-box-scroll text-primary fw-bold">${data || '-'}</div>`; 
+                    } 
+                },
+                { 
+                    "data": "predicted_sentiment",
+                    "className": "text-center col-highlight",
+                    "render": function(data) {
+                        let val = String(data).trim().toLowerCase();
+                        if (val === 'positif' || val === '1') {
+                            return `<span class="badge bg-success-subtle text-success border border-success px-2 py-1">Positif</span>`;
+                        } else {
+                            return `<span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">Negatif</span>`;
+                        }
+                    }
+                }
+            ],
+            "createdRow": function(row, data, dataIndex) {
+                // Memberi data-label untuk rendering Card View di Mobile
+                $('td', row).eq(0).attr('data-label', 'No');
+                $('td', row).eq(1).attr('data-label', 'Ulasan Mentah (Raw)');
+                $('td', row).eq(2).attr('data-label', '1. Case Folding');
+                $('td', row).eq(3).attr('data-label', '2. Cleaning');
+                $('td', row).eq(4).attr('data-label', '3. Normalization');
+                $('td', row).eq(5).attr('data-label', '4. Stopword Removal');
+                $('td', row).eq(6).attr('data-label', '5. Stemming (Final)');
+                $('td', row).eq(7).attr('data-label', 'Sentimen');
+            },
+            "pageLength": 10,
+            "lengthMenu": [10, 25, 50, 100],
+            "language": {
+                "processing": '<div class="spinner-border spinner-border-sm text-primary" role="status"></div> Memuat...',
+                "search": "Cari data:",
+                "lengthMenu": "Tampilkan _MENU_ baris",
+                "info": "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                "infoEmpty": "0 data",
+                "paginate": {
+                    "next": "<i class='fa-solid fa-chevron-right'></i>",
+                    "previous": "<i class='fa-solid fa-chevron-left'></i>"
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

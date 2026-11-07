@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Styling Custom Card agar Selaras dengan Dashboard */
+    .dashboard-card {
+        border-radius: 14px;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    [data-bs-theme="light"] .dashboard-card {
+        background: #ffffff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+        border: 1px solid rgba(0, 0, 0, 0.04) !important;
+    }
+
+    [data-bs-theme="dark"] .dashboard-card {
+        background: #1e1e2d;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-2px);
+    }
+</style>
+
+<div class="mb-4">
+    <h3 class="fw-bold mb-1"><i class="fa-solid fa-wand-magic-sparkles text-primary me-2"></i>Uji Sentimen Ulasan Tunggal</h3>
+    <p class="text-muted small mb-0">Simulasi prediksi sentimen secara real-time menggunakan pipeline preprocessing NLP & model SVM.</p>
+</div>
+
+<div class="row g-4">
+    <!-- Kolom Utama: Form Pengujian & Hasil -->
+    <div class="col-lg-8">
+        <div class="card border-0 dashboard-card p-2">
+            <div class="card-header fw-bold py-3 bg-transparent border-bottom">
+                <i class="fa-solid fa-pen-to-square text-primary me-2"></i>Form Masukan Teks Ulasan
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <label for="inputReview" class="form-label fw-semibold">Masukkan Teks Ulasan Rumah Sakit:</label>
+                    <textarea class="form-control" id="inputReview" rows="5" placeholder="Ketik atau pilih contoh ulasan di panel sebelah kanan..."></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button id="btnAnalyze" class="btn btn-primary w-100 fw-semibold shadow-sm" onclick="analyzeText()">
+                        <i class="fa-solid fa-magnifying-glass me-1"></i> Analisis Sentimen
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="clearForm()" title="Bersihkan Form">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                </div>
+
+                <!-- Container Hasil -->
+                <div id="resultContainer" class="mt-4 style-result d-none">
+                    <hr class="opacity-25">
+                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-square-poll-vertical text-primary me-2"></i>Hasil Analisis Sistem:</h6>
+                    
+                    <div class="p-3 mb-3 bg-body-tertiary rounded border">
+                        <small class="text-muted d-block fw-semibold mb-1">Teks Setelah Normalisasi & Preprocessing:</small>
+                        <span id="cleanedText" class="fst-italic"></span>
+                    </div>
+
+                    <div class="alert mt-3 mb-0" id="sentimentBadge" role="alert">
+                        <h4 class="alert-heading mb-1 fw-bold" id="sentimentResult">Positif</h4>
+                        <small id="scoreInfo" class="d-block mt-2 opacity-75 border-top pt-2"></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kolom Kanan: Quick Samples & Petunjuk Evaluasi -->
+    <div class="col-lg-4">
+        <!-- Card 1: Sampel Ulasan Cepat -->
+        <div class="card border-0 dashboard-card p-2 mb-4">
+            <div class="card-header fw-bold py-3 bg-transparent border-bottom">
+                <i class="fa-solid fa-lightbulb text-warning me-2"></i>Contoh Ulasan Cepat
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-2">Klik salah satu contoh di bawah ini untuk mengisi form secara otomatis:</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-outline-success text-start p-2" onclick="fillSample('Pelayanan dokter dan perawat sangat baik, ramah, dan penanganannya cepat. Fasilitas rumah sakit juga bersih dan nyaman.')">
+                        <i class="fa-solid fa-plus-circle me-1"></i> Contoh Positif 1 (Pelayanan)
+                    </button>
+                    <button class="btn btn-sm btn-outline-success text-start p-2" onclick="fillSample('Obat lengkap, penjelasan apoteker sangat detail dan sabar melayani pasien.')">
+                        <i class="fa-solid fa-plus-circle me-1"></i> Contoh Positif 2 (Apotek)
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger text-start p-2" onclick="fillSample('Antrean pendaftaran sangat lama dan tidak teratur. Petugas administrasi kurang ramah saat melayani.')">
+                        <i class="fa-solid fa-minus-circle me-1"></i> Contoh Negatif 1 (Antrean)
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger text-start p-2" onclick="fillSample('Dokter datang tidak tepat waktu, harus menunggu sampai 2 jam padahal kondisi pasien sudah lemas.')">
+                        <i class="fa-solid fa-minus-circle me-1"></i> Contoh Negatif 2 (Waktu Tunggu)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Edukasi Decision Score -->
+        <div class="card border-0 dashboard-card p-2">
+            <div class="card-header fw-bold py-3 bg-transparent border-bottom">
+                <i class="fa-solid fa-circle-info text-info me-2"></i>Info Decision Score SVM
+            </div>
+            <div class="card-body small text-muted">
+                <p class="mb-2"><strong>Decision Score</strong> mengukur jarak data teks terhadap <em>hyperplane</em> keputusan pada model Support Vector Machine:</p>
+                <ul class="ps-3 mb-0">
+                    <li class="mb-1"><strong class="text-success">Nilai Positif (&gt; 0):</strong> Teks cenderung berada di area klasifikasi Positif.</li>
+                    <li><strong class="text-danger">Nilai Negatif (&lt; 0):</strong> Teks cenderung berada di area klasifikasi Negatif.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function fillSample(text) {
+    document.getElementById('inputReview').value = text;
+}
+
+function clearForm() {
+    document.getElementById('inputReview').value = '';
+    document.getElementById('resultContainer').classList.add('d-none');
+}
+
+async function analyzeText() {
+    const text = document.getElementById('inputReview').value;
+    if (!text.trim()) return alert('Masukkan teks terlebih dahulu!');
+
+    const btn = document.getElementById('btnAnalyze');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Memproses...';
+
+    try {
+        const response = await fetch('/api/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+        });
+        const data = await response.json();
+
+        document.getElementById('cleanedText').innerText = data.cleaned_text || '(Tidak ada kata tersisa setelah stopword)';
+        
+        const badge = document.getElementById('sentimentBadge');
+        const resText = document.getElementById('sentimentResult');
+        const scoreInfo = document.getElementById('scoreInfo');
+
+        let isPositive = data.sentiment.toLowerCase() === 'positif' || data.sentiment === '1';
+
+        if (isPositive) {
+            badge.className = 'alert alert-success mt-3 border-success';
+            resText.innerHTML = '<i class="fa-solid fa-face-smile me-2"></i> Sentimen: POSITIF';
+        } else {
+            badge.className = 'alert alert-danger mt-3 border-danger';
+            resText.innerHTML = '<i class="fa-solid fa-face-frown me-2"></i> Sentimen: NEGATIF';
+        }
+
+        if (data.decision_score !== null && data.decision_score !== undefined) {
+            scoreInfo.innerText = `Decision Score Model (Jarak Hyperplane): ${data.decision_score.toFixed(4)}`;
+        } else {
+            scoreInfo.innerText = '';
+        }
+
+        document.getElementById('resultContainer').classList.remove('d-none');
+    } catch (err) {
+        alert('Terjadi kesalahan sistem.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-magnifying-glass me-1"></i> Analisis Sentimen';
+    }
+}
+</script>
+{% endblock %}

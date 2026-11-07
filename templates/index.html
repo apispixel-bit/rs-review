@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Custom Styling untuk Dashboard Premium */
+    .dashboard-card {
+        border-radius: 14px;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    [data-bs-theme="light"] .dashboard-card {
+        background: #ffffff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+        border: 1px solid rgba(0, 0, 0, 0.04) !important;
+    }
+
+    [data-bs-theme="dark"] .dashboard-card {
+        background: #1e1e2d;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+    }
+
+    /* Stat Cards dengan Gradien Modern */
+    .stat-card-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+        box-shadow: 0 6px 18px rgba(13, 110, 253, 0.25) !important;
+    }
+
+    .stat-card-success {
+        background: linear-gradient(135deg, #198754 0%, #146c43 100%) !important;
+        box-shadow: 0 6px 18px rgba(25, 135, 84, 0.25) !important;
+    }
+
+    .stat-card-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%) !important;
+        box-shadow: 0 6px 18px rgba(220, 53, 69, 0.25) !important;
+    }
+
+    .stat-icon-wrapper {
+        width: 52px;
+        height: 52px;
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Responsif Mobile Khusus Pratinjau Tabel */
+    @media (max-width: 575.98px) {
+        .preview-header-box {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 10px;
+        }
+        .preview-header-box a {
+            width: 100%;
+            text-align: center;
+        }
+        .table-preview-responsive td, 
+        .table-preview-responsive th {
+            font-size: 0.78rem;
+            padding: 6px 4px;
+        }
+        .hide-mobile-col {
+            display: none !important;
+        }
+    }
+</style>
+
+<div class="mb-4">
+    <h3 class="fw-bold mb-1">Ringkasan Analisis Sentimen Ulasan Rumah Sakit</h3>
+    <p class="text-muted small mb-0">Hasil Klasifikasi Data Ulasan Pasien Menggunakan Model Support Vector Machine (SVM)</p>
+</div>
+
+<!-- Row 1: Metric Cards Bergradien & Elevated Shadow -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 dashboard-card stat-card-primary text-white p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-white-50 small fw-semibold text-uppercase">Total Ulasan Diproses</span>
+                    <h2 class="fw-bold mb-0 mt-1" id="stat-total">0</h2>
+                </div>
+                <div class="stat-icon-wrapper">
+                    <i class="fa-solid fa-comments fa-xl text-white"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 dashboard-card stat-card-success text-white p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-white-50 small fw-semibold text-uppercase">Sentimen Positif</span>
+                    <h2 class="fw-bold mb-0 mt-1" id="stat-pos">0 (0%)</h2>
+                </div>
+                <div class="stat-icon-wrapper">
+                    <i class="fa-solid fa-face-smile fa-xl text-white"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 dashboard-card stat-card-danger text-white p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-white-50 small fw-semibold text-uppercase">Sentimen Negatif</span>
+                    <h2 class="fw-bold mb-0 mt-1" id="stat-neg">0 (0%)</h2>
+                </div>
+                <div class="stat-icon-wrapper">
+                    <i class="fa-solid fa-face-frown fa-xl text-white"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 2: Charts -->
+<div class="row g-3 mb-4">
+    <div class="col-md-5">
+        <div class="card dashboard-card p-4 h-100">
+            <h6 class="fw-bold mb-3"><i class="fa-solid fa-chart-pie text-primary me-2"></i>Proporsi Sentimen Pasien</h6>
+            <div class="d-flex justify-content-center align-items-center style-chart" style="position: relative; height: 250px;">
+                <canvas id="chartPie"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="card dashboard-card p-4 h-100">
+            <h6 class="fw-bold mb-3"><i class="fa-solid fa-chart-bar text-primary me-2"></i>Kata Kunci Dominan (Data Riil)</h6>
+            <div style="position: relative; height: 250px;">
+                <canvas id="chartBar"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 3: Model Evaluation & Live Preview -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card dashboard-card p-4 h-100">
+            <h6 class="fw-bold mb-3"><i class="fa-solid fa-microchip text-primary me-2"></i>Performa Model SVM</h6>
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                <span class="text-muted small">Algoritma</span>
+                <span class="badge bg-primary-subtle text-primary fw-bold px-2 py-1">Support Vector Machine</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                <span class="text-muted small">Pembobotan Kata</span>
+                <span class="badge bg-secondary-subtle text-secondary fw-bold px-2 py-1">TF-IDF Vectorizer</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                <span class="text-muted small">Estimasi Akurasi</span>
+                <strong class="text-success fw-bold">~88.5%</strong>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small">Fitur Teks (Vocabulary)</span>
+                <span class="fw-bold">1,814 Kata</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card dashboard-card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3 preview-header-box">
+                <h6 class="fw-bold mb-0"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Pratinjau Ulasan Terbaru</h6>
+                <a href="/preprocessing" class="btn btn-sm btn-outline-primary fw-semibold px-3 rounded-pill">
+                    Lihat Semua Data <i class="fa-solid fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0 table-preview-responsive" id="table-preview">
+                    <thead>
+                        <tr>
+                            <th>Ulasan Pasien</th>
+                            <th class="hide-mobile-col">Hasil Stemming</th>
+                            <th class="text-center">Sentimen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data diisi secara otomatis via AJAX -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // Function untuk deteksi tema saat render chart
+        function getChartColors() {
+            const isDark = $('html').attr('data-bs-theme') === 'dark';
+            return {
+                text: isDark ? '#a2a3b7' : '#6c757d',
+                grid: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+            };
+        }
+
+        const colors = getChartColors();
+
+        // Load Ringkasan Data API
+        $.getJSON('/api/stats', function(data) {
+            $('#stat-total').text(data.total_reviews.toLocaleString());
+            
+            let posPct = ((data.positive_count / data.total_reviews) * 100).toFixed(1);
+            let negPct = ((data.negative_count / data.total_reviews) * 100).toFixed(1);
+
+            $('#stat-pos').text(`${data.positive_count.toLocaleString()} (${posPct}%)`);
+            $('#stat-neg').text(`${data.negative_count.toLocaleString()} (${negPct}%)`);
+
+            // Render Chart Pie
+            new Chart(document.getElementById('chartPie'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Positif', 'Negatif'],
+                    datasets: [{
+                        data: [data.positive_count, data.negative_count],
+                        backgroundColor: ['#198754', '#dc3545'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { color: colors.text }
+                        }
+                    }
+                }
+            });
+
+            // Render Chart Bar Kata Kunci
+            let labels = data.top_keywords.map(k => k.word);
+            let counts = data.top_keywords.map(k => k.count);
+
+            new Chart(document.getElementById('chartBar'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Frekuensi Kemunculan Kata',
+                        data: counts,
+                        backgroundColor: '#0d6efd',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { ticks: { color: colors.text }, grid: { display: false } },
+                        y: { ticks: { color: colors.text }, grid: { color: colors.grid }, beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { labels: { color: colors.text } }
+                    }
+                }
+            });
+        });
+
+        // Load 5 Sampel Data Ulasan Terbaru untuk Pratinjau Tabel
+        $.getJSON('/api/preprocessing?length=5&start=0', function(response) {
+            let html = '';
+            response.data.forEach(function(row) {
+                let badge = (String(row.predicted_sentiment).toLowerCase() === 'positif' || row.predicted_sentiment === '1')
+                    ? '<span class="badge bg-success-subtle text-success border border-success px-2 py-1">Positif</span>'
+                    : '<span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">Negatif</span>';
+                
+                html += `<tr>
+                    <td><small class="text-truncate d-inline-block opacity-75" style="max-width: 180px;">${row.raw_text}</small></td>
+                    <td class="hide-mobile-col"><small class="text-primary text-truncate d-inline-block fw-semibold" style="max-width: 160px;">${row.step5_stemmed}</small></td>
+                    <td class="text-center">${badge}</td>
+                </tr>`;
+            });
+            $('#table-preview tbody').html(html);
+        });
+    });
+</script>
+{% endblock %}
