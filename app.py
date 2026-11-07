@@ -15,10 +15,11 @@ DATA_DIR = os.path.join(BASE_DIR, 'data')
 # --- KONEKSI DATABASE MYSQL ---
 def get_db_connection():
     return mysql.connector.connect(
-        host='localhost',
-        user='root',
-        password='',
-        database='db_hospital_sentiment'
+        host=os.environ.get('MYSQLHOST', 'localhost'),
+        user=os.environ.get('MYSQLUSER', 'root'),
+        password=os.environ.get('MYSQLPASSWORD', ''),
+        database=os.environ.get('MYSQLDATABASE', 'db_hospital_sentiment'),
+        port=int(os.environ.get('MYSQLPORT', 3306))
     )
 
 # 1. Load Kamus Normalisasi
